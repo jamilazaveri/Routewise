@@ -570,7 +570,10 @@
           <div id="historyTab" class="tab-pane">
             <div class="tab-header">
               <h3>Previously Planned Trips</h3>
-              <button type="button" class="small-btn" onclick="loadSavedTrips()">Refresh History</button>
+              <div>
+                <button type="button" class="small-btn" onclick="loadSavedTrips()">Refresh History</button>
+                <button type="button" class="small-btn" style="background:#fee2e2;color:#b91c1c;border-color:#fca5a5;margin-left:8px;" onclick="clearTripHistory()">🗑️ Clear History</button>
+              </div>
             </div>
             <div id="savedTripsList" class="saved-trips-list">
               <!-- Dynamically populated -->

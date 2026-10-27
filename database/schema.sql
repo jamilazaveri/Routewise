@@ -130,9 +130,11 @@ CREATE TABLE trips (
     amount_left DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     is_feasible BOOLEAN NOT NULL DEFAULT TRUE,
     feasibility_notes TEXT,
+    trip_hash VARCHAR(64),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (start_city_id) REFERENCES cities(id),
-    FOREIGN KEY (destination_city_id) REFERENCES cities(id)
+    FOREIGN KEY (destination_city_id) REFERENCES cities(id),
+    INDEX idx_trip_hash (trip_hash)
 ) ENGINE=InnoDB;
 
 -- 7. Trip Items Table (Itinerary Events)

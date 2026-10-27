@@ -100,4 +100,22 @@ public class TripController {
         }
         return ResponseEntity.ok(routeDetail);
     }
+
+    /**
+     * Delete a specific trip by ID.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTrip(@PathVariable Long id) {
+        tripService.deleteTrip(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Clear all saved trips history.
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> clearAllTrips() {
+        tripService.clearAllTrips();
+        return ResponseEntity.noContent().build();
+    }
 }

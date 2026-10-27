@@ -283,11 +283,12 @@ class RouteOption(BaseModel):
 
 class MultiRoutePlanRequest(BaseModel):
     trip_id: Optional[int] = None
-    city_name: str
+    city_name: str = "Chennai"
     transport_mode: str = "car"  # car, bike, bus, train
     hotel: Optional[HotelCandidate] = None
     restaurants: List[RestaurantCandidate] = []
     attractions: List[AttractionCandidate] = []
+    stops: List[StopItem] = []
     num_days: int = 1
     selected_day: Optional[int] = 1
 

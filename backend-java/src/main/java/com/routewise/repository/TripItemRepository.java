@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TripItemRepository extends JpaRepository<TripItem, Long> {
     List<TripItem> findByTripIdOrderByDayNumberAscItemOrderAsc(Long tripId);
+    void deleteByTripId(Long tripId);
 }

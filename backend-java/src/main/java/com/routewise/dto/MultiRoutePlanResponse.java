@@ -1,13 +1,23 @@
 package com.routewise.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.math.BigDecimal;
 import java.util.*;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MultiRoutePlanResponse {
 
+    @JsonAlias({"trip_id", "tripId"})
     private Long tripId;
+
+    @JsonAlias({"city_name", "cityName"})
     private String cityName;
+
+    @JsonAlias({"transport_mode", "transportMode"})
     private String transportMode;
+
     private Map<String, RouteDetailDto> routes = new HashMap<>();
     private List<RouteComparisonDto> comparison = new ArrayList<>();
 
@@ -28,18 +38,38 @@ public class MultiRoutePlanResponse {
     public List<RouteComparisonDto> getComparison() { return comparison; }
     public void setComparison(List<RouteComparisonDto> comparison) { this.comparison = comparison; }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RouteDetailDto {
         private Long id;
+
+        @JsonAlias({"route_type", "routeType"})
         private String routeType;
+
         private String tag;
+
+        @JsonAlias({"total_distance_km", "totalDistanceKm"})
         private BigDecimal totalDistanceKm;
+
+        @JsonAlias({"total_time_mins", "totalTimeMins"})
         private Integer totalTimeMins;
+
+        @JsonAlias({"total_cost", "totalCost"})
         private BigDecimal totalCost;
+
+        @JsonAlias({"fuel_cost", "fuelCost"})
         private BigDecimal fuelCost;
+
+        @JsonAlias({"toll_cost", "tollCost"})
         private BigDecimal tollCost;
+
+        @JsonAlias({"scenic_score", "scenicScore"})
         private BigDecimal scenicScore;
+
         private String summary;
+
+        @JsonAlias({"ordered_stops", "orderedStops"})
         private List<MultiRoutePlanRequest.StopItemDto> orderedStops = new ArrayList<>();
+
         private List<LegDto> legs = new ArrayList<>();
         private List<String> warnings = new ArrayList<>();
 
@@ -85,25 +115,59 @@ public class MultiRoutePlanResponse {
         public void setWarnings(List<String> warnings) { this.warnings = warnings; }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LegDto {
         private Integer seq;
+
+        @JsonAlias({"from_stop_name", "fromStopName"})
         private String fromStopName;
+
+        @JsonAlias({"from_stop_type", "fromStopType"})
         private String fromStopType;
+
+        @JsonAlias({"from_lat", "fromLat"})
         private BigDecimal fromLat;
+
+        @JsonAlias({"from_lng", "fromLng"})
         private BigDecimal fromLng;
+
+        @JsonAlias({"to_stop_name", "toStopName"})
         private String toStopName;
+
+        @JsonAlias({"to_stop_type", "toStopType"})
         private String toStopType;
+
+        @JsonAlias({"to_lat", "toLat"})
         private BigDecimal toLat;
+
+        @JsonAlias({"to_lng", "toLng"})
         private BigDecimal toLng;
+
+        @JsonAlias({"distance_km", "distanceKm"})
         private BigDecimal distanceKm;
+
+        @JsonAlias({"duration_mins", "durationMins"})
         private Integer durationMins;
+
+        @JsonAlias({"toll_cost", "tollCost"})
         private BigDecimal tollCost;
+
+        @JsonAlias({"fuel_cost", "fuelCost"})
         private BigDecimal fuelCost;
+
+        @JsonAlias({"arrival_time", "arrivalTime"})
         private String arrivalTime;
+
+        @JsonAlias({"departure_time", "departureTime"})
         private String departureTime;
+
+        @JsonAlias({"stay_duration_mins", "stayDurationMins"})
         private Integer stayDurationMins;
+
         private List<List<Double>> geometry = new ArrayList<>();
         private String instructions;
+
+        @JsonAlias({"closing_time_warning", "closingTimeWarning"})
         private String closingTimeWarning;
 
         public LegDto() {}
@@ -166,16 +230,35 @@ public class MultiRoutePlanResponse {
         public void setClosingTimeWarning(String closingTimeWarning) { this.closingTimeWarning = closingTimeWarning; }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RouteComparisonDto {
+        @JsonAlias({"route_type", "routeType"})
         private String routeType;
+
         private String title;
+
+        @JsonAlias({"distance_km", "distanceKm", "totalDistanceKm"})
         private BigDecimal distanceKm;
+
+        @JsonAlias({"time_mins", "timeMins", "totalTimeMins", "durationMins"})
         private Integer timeMins;
+
+        @JsonAlias({"fuel_cost", "fuelCost"})
         private BigDecimal fuelCost;
+
+        @JsonAlias({"toll_cost", "tollCost"})
         private BigDecimal tollCost;
+
+        @JsonAlias({"total_cost", "totalCost", "cost_inr"})
         private BigDecimal totalCost;
+
+        @JsonAlias({"scenic_score", "scenicScore"})
         private BigDecimal scenicScore;
+
+        @JsonAlias({"stops_count", "stopsCount"})
         private Integer stopsCount;
+
+        @JsonAlias({"warnings_count", "warningsCount"})
         private Integer warningsCount;
 
         public RouteComparisonDto() {}

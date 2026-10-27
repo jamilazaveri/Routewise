@@ -92,6 +92,9 @@ public class Trip {
     @Column(name = "feasibility_notes", columnDefinition = "TEXT")
     private String feasibilityNotes;
 
+    @Column(name = "trip_hash", length = 64)
+    private String tripHash;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -177,6 +180,9 @@ public class Trip {
 
     public String getFeasibilityNotes() { return feasibilityNotes; }
     public void setFeasibilityNotes(String feasibilityNotes) { this.feasibilityNotes = feasibilityNotes; }
+
+    public String getTripHash() { return tripHash; }
+    public void setTripHash(String tripHash) { this.tripHash = tripHash; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

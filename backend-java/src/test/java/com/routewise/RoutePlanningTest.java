@@ -88,4 +88,72 @@ public class RoutePlanningTest {
 
         assertTrue(weightedCostHigh < weightedCostLow, "Higher scenic score produces lower cost in scenic route optimization");
     }
+
+    @Test
+    @DisplayName("Verify that all five route styles produce distinctly differentiated numbers")
+    void testFiveRouteStylesProduceDistinctResults() {
+        com.routewise.dto.MultiRoutePlanRequest req = new com.routewise.dto.MultiRoutePlanRequest();
+        req.setCityName("Chennai");
+
+        com.routewise.dto.MultiRoutePlanRequest.StopItemDto s1 = new com.routewise.dto.MultiRoutePlanRequest.StopItemDto();
+        s1.setName("Mylapore Inn");
+        s1.setType("hotel");
+        s1.setLatitude(new BigDecimal("13.0330"));
+        s1.setLongitude(new BigDecimal("80.2690"));
+
+        com.routewise.dto.MultiRoutePlanRequest.StopItemDto s2 = new com.routewise.dto.MultiRoutePlanRequest.StopItemDto();
+        s2.setName("Marina Beach");
+        s2.setType("attraction");
+        s2.setLatitude(new BigDecimal("13.0500"));
+        s2.setLongitude(new BigDecimal("80.2824"));
+
+        com.routewise.dto.MultiRoutePlanRequest.StopItemDto s3 = new com.routewise.dto.MultiRoutePlanRequest.StopItemDto();
+        s3.setName("Kapaleeshwarar Temple");
+        s3.setType("attraction");
+        s3.setLatitude(new BigDecimal("13.0336"));
+        s3.setLongitude(new BigDecimal("80.2694"));
+
+        req.setStops(java.util.List.of(s1, s2, s3));
+
+        com.routewise.service.PythonMicroserviceClient client = new com.routewise.service.PythonMicroserviceClient(
+                new org.springframework.web.client.RestTemplate(),
+                new com.fasterxml.jackson.databind.ObjectMapper()
+        );
+
+        // Uses fallback or microservice
+        com.routewise.dto.MultiRoutePlanResponse res = client.planRoutes(req);
+        assertNotNull(res);
+        assertNotNull(res.getRoutes());
+        assertEquals(5, res.getRoutes().size());
+
+        com.routewise.dto.MultiRoutePlanResponse.RouteDetailDto fastest = res.getRoutes().get("fastest");
+        com.routewise.dto.MultiRoutePlanResponse.RouteDetailDto shortest = res.getRoutes().get("shortest");
+        com.routewise.dto.MultiRoutePlanResponse.RouteDetailDto cheapest = res.getRoutes().get("cheapest");
+        com.routewise.dto.MultiRoutePlanResponse.RouteDetailDto scenic = res.getRoutes().get("scenic");
+        com.routewise.dto.MultiRoutePlanResponse.RouteDetailDto easiest = res.getRoutes().get("easiest");
+
+        assertNotNull(fastest);
+        assertNotNull(shortest);
+        assertNotNull(cheapest);
+        assertNotNull(scenic);
+        assertNotNull(easiest);
+
+        // Shortest distance <= fastest distance
+        assertTrue(shortest.getTotalDistanceKm().compareTo(fastest.getTotalDistanceKm()) <= 0);
+
+        // Cheapest total cost <= fastest total cost
+        assertTrue(cheapest.getTotalCost().compareTo(fastest.getTotalCost()) <= 0);
+
+        // Scenic score >= fastest scenic score
+        assertTrue(scenic.getScenicScore().compareTo(fastest.getScenicScore()) >= 0);
+
+        // Scenic detour is <= 25% over fastest
+        BigDecimal maxAllowedScenic = fastest.getTotalDistanceKm().multiply(new BigDecimal("1.25"));
+        assertTrue(scenic.getTotalDistanceKm().compareTo(maxAllowedScenic) <= 0);
+
+        // Distinct distances check across styles
+        java.util.Set<BigDecimal> dists = new java.util.HashSet<>();
+        res.getRoutes().values().forEach(r -> dists.add(r.getTotalDistanceKm()));
+        assertTrue(dists.size() > 1, "There must be distinct distances across route styles");
+    }
 }

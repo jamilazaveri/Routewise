@@ -474,6 +474,34 @@ public class PythonMicroserviceClient {
             int currentHour = 9;
             int currentMinute = 0;
 
+            // Differentiate speed, distance multiplier and fuel efficiency per route type
+            double distMult = 1.0;
+            double speedKmh = 42.0;
+            double kmPerLitre = 15.0;
+            double scenicScoreVal = 0.55;
+
+            if ("shortest".equals(rType)) {
+                distMult = 0.89;
+                speedKmh = 23.0; // Slower urban grid
+                kmPerLitre = 14.5;
+                scenicScoreVal = 0.45;
+            } else if ("cheapest".equals(rType)) {
+                distMult = 0.93;
+                speedKmh = 34.0;
+                kmPerLitre = 18.5; // Optimal eco-driving efficiency
+                scenicScoreVal = 0.50;
+            } else if ("scenic".equals(rType)) {
+                distMult = 1.18; // Scenic detour, strictly <= 1.25x of fastest
+                speedKmh = 28.0;
+                kmPerLitre = 15.0;
+                scenicScoreVal = 0.94; // High scenic coastal score
+            } else if ("easiest".equals(rType)) {
+                distMult = 1.05; // Arterial bypass
+                speedKmh = 38.0;
+                kmPerLitre = 15.8;
+                scenicScoreVal = 0.60;
+            }
+
             for (int i = 0; i < stops.size() - 1; i++) {
                 MultiRoutePlanRequest.StopItemDto from = stops.get(i);
                 MultiRoutePlanRequest.StopItemDto to = stops.get(i + 1);
@@ -490,12 +518,11 @@ public class PythonMicroserviceClient {
                         + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                         * Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                double km = 6371.0 * c * 1.3; // road factor
-                if (km < 0.5) km = 1.0;
+                double km = Math.max(0.4, 6371.0 * c * 1.30 * distMult);
 
-                int legDuration = Math.max(3, (int) Math.round((km / 30.0) * 60.0));
+                int legDuration = Math.max(3, (int) Math.round((km / speedKmh) * 60.0));
                 BigDecimal legDistBd = BigDecimal.valueOf(km).setScale(2, RoundingMode.HALF_UP);
-                BigDecimal legFuelBd = legDistBd.multiply(BigDecimal.valueOf(6.8)).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal legFuelBd = BigDecimal.valueOf((km / kmPerLitre) * 103.0).setScale(2, RoundingMode.HALF_UP);
                 BigDecimal legTollBd = BigDecimal.ZERO;
 
                 totalDist = totalDist.add(legDistBd);
@@ -553,7 +580,7 @@ public class PythonMicroserviceClient {
             detail.setFuelCost(totalFuel);
             detail.setTollCost(totalToll);
             detail.setTotalCost(totalFuel.add(totalToll));
-            detail.setScenicScore(BigDecimal.valueOf(rType.equals("scenic") ? 0.92 : 0.65));
+            detail.setScenicScore(BigDecimal.valueOf(scenicScoreVal).setScale(2, RoundingMode.HALF_UP));
 
             response.getRoutes().put(rType, detail);
 

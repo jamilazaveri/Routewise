@@ -198,12 +198,35 @@ class RoutewiseMicroserviceTests(unittest.TestCase):
         self.assertIn("easiest", res.routes)
 
         fastest = res.routes["fastest"]
-        scenic = res.routes["scenic"]
         shortest = res.routes["shortest"]
+        cheapest = res.routes["cheapest"]
+        scenic = res.routes["scenic"]
+        easiest = res.routes["easiest"]
 
         self.assertGreater(fastest.total_distance_km, 0.0)
         self.assertGreater(scenic.scenic_score, 0.0)
-        self.assertLessEqual(shortest.total_distance_km, fastest.total_distance_km * 1.5)
+
+        # 1. Shortest has shorter or equal distance compared to fastest
+        self.assertLessEqual(shortest.total_distance_km, fastest.total_distance_km)
+
+        # 2. Fastest has lower travel time compared to shortest
+        self.assertLessEqual(fastest.total_time_mins, shortest.total_time_mins)
+
+        # 3. Cheapest avoids tolls and has lower or equal cost compared to fastest
+        self.assertEqual(cheapest.toll_cost, 0.0)
+        self.assertLessEqual(cheapest.total_cost, fastest.total_cost)
+
+        # 4. Scenic has highest scenic score and adheres to max 25% detour cap
+        self.assertGreaterEqual(scenic.scenic_score, fastest.scenic_score)
+        self.assertLessEqual(scenic.total_distance_km, round(fastest.total_distance_km * 1.25, 2))
+
+        # 5. Distinct values check across styles
+        distances = {r.total_distance_km for r in res.routes.values()}
+        self.assertGreater(len(distances), 1, "Route styles must produce distinct distances")
+
+        costs = {r.total_cost for r in res.routes.values()}
+        self.assertGreater(len(costs), 1, "Route styles must produce distinct costs")
+
         self.assertEqual(len(res.comparison), 5)
 
 

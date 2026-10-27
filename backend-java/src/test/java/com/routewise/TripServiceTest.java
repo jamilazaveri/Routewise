@@ -150,4 +150,60 @@ public class TripServiceTest {
         assertTrue(result.getIsFeasible());
         verify(tripRepository, times(1)).save(any(Trip.class));
     }
+
+    @Test
+    @DisplayName("Should deduplicate trip with identical hash and update existing record")
+    void testPlanTripDeduplication() {
+        TripPlanRequest request = new TripPlanRequest();
+        request.setStartCity("Chennai");
+        request.setDestinationCity("Pondicherry");
+        request.setNumDays(2);
+        request.setNumTravellers(2);
+        request.setTransportMode("car");
+        request.setTotalBudgetMin(new BigDecimal("10000"));
+        request.setTotalBudgetMax(new BigDecimal("15000"));
+
+        when(cityRepository.findByNameIgnoreCase("Chennai")).thenReturn(Optional.of(chennai));
+        when(cityRepository.findByNameIgnoreCase("Pondicherry")).thenReturn(Optional.of(pondicherry));
+        when(routeRepository.findByOriginCityIdAndDestinationCityId(1L, 2L)).thenReturn(Optional.of(route));
+
+        Trip existingTrip = new Trip();
+        existingTrip.setId(42L);
+        existingTrip.setTripName("Existing Trip");
+        when(tripRepository.findByTripHash(anyString())).thenReturn(Optional.of(existingTrip));
+        when(tripRepository.save(any(Trip.class))).thenReturn(existingTrip);
+
+        TripPlanResponse mockResp = new TripPlanResponse();
+        mockResp.setIsFeasible(true);
+        when(pythonClient.optimizeTrip(any(), any(), any(), any(), any())).thenReturn(mockResp);
+
+        TripPlanResponse result = tripService.planTrip(request);
+
+        assertNotNull(result);
+        assertEquals(42L, result.getTripId());
+        verify(tripItemRepository, times(1)).deleteByTripId(42L);
+        verify(routeOptionRepository, times(1)).deleteByTripId(42L);
+        verify(tripRepository, times(1)).save(existingTrip);
+    }
+
+    @Test
+    @DisplayName("Should delete trip and cascade delete items and route options")
+    void testDeleteTrip() {
+        tripService.deleteTrip(42L);
+
+        verify(tripItemRepository, times(1)).deleteByTripId(42L);
+        verify(routeOptionRepository, times(1)).deleteByTripId(42L);
+        verify(tripRepository, times(1)).deleteById(42L);
+    }
+
+    @Test
+    @DisplayName("Should clear all trips and cascade delete all records")
+    void testClearAllTrips() {
+        tripService.clearAllTrips();
+
+        verify(tripItemRepository, times(1)).deleteAll();
+        verify(routeLegRepository, times(1)).deleteAll();
+        verify(routeOptionRepository, times(1)).deleteAll();
+        verify(tripRepository, times(1)).deleteAll();
+    }
 }

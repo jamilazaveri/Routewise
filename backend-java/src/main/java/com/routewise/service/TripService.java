@@ -138,6 +138,21 @@ public class TripService {
         return tripRepository.findById(id);
     }
 
+    @Transactional
+    public void deleteTrip(Long id) {
+        tripItemRepository.deleteByTripId(id);
+        routeOptionRepository.deleteByTripId(id);
+        tripRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void clearAllTrips() {
+        tripItemRepository.deleteAll();
+        routeLegRepository.deleteAll();
+        routeOptionRepository.deleteAll();
+        tripRepository.deleteAll();
+    }
+
     /**
      * Plans multi-style ordered routes for a given trip.
      */
@@ -354,15 +369,15 @@ public class TripService {
 
             RouteOption opt = new RouteOption();
             opt.setTrip(trip);
-            opt.setRouteType(routeType);
-            opt.setTag(detail.getTag());
-            opt.setTotalDistanceKm(detail.getTotalDistanceKm());
-            opt.setTotalTimeMins(detail.getTotalTimeMins());
-            opt.setTotalCost(detail.getTotalCost());
-            opt.setFuelCost(detail.getFuelCost());
-            opt.setTollCost(detail.getTollCost());
-            opt.setScenicScore(detail.getScenicScore());
-            opt.setSummary(detail.getSummary());
+            opt.setRouteType(routeType != null ? routeType.toLowerCase() : "fastest");
+            opt.setTag(detail.getTag() != null ? detail.getTag() : "");
+            opt.setTotalDistanceKm(detail.getTotalDistanceKm() != null ? detail.getTotalDistanceKm() : BigDecimal.ZERO);
+            opt.setTotalTimeMins(detail.getTotalTimeMins() != null ? detail.getTotalTimeMins() : 0);
+            opt.setTotalCost(detail.getTotalCost() != null ? detail.getTotalCost() : BigDecimal.ZERO);
+            opt.setFuelCost(detail.getFuelCost() != null ? detail.getFuelCost() : BigDecimal.ZERO);
+            opt.setTollCost(detail.getTollCost() != null ? detail.getTollCost() : BigDecimal.ZERO);
+            opt.setScenicScore(detail.getScenicScore() != null ? detail.getScenicScore() : new BigDecimal("0.50"));
+            opt.setSummary(detail.getSummary() != null ? detail.getSummary() : "");
 
             RouteOption savedOpt = routeOptionRepository.save(opt);
             detail.setId(savedOpt.getId());
@@ -371,23 +386,23 @@ public class TripService {
                 for (MultiRoutePlanResponse.LegDto legDto : detail.getLegs()) {
                     RouteLeg leg = new RouteLeg();
                     leg.setRouteOption(savedOpt);
-                    leg.setSeq(legDto.getSeq());
-                    leg.setFromStopName(legDto.getFromStopName());
-                    leg.setFromStopType(legDto.getFromStopType());
-                    leg.setFromLat(legDto.getFromLat());
-                    leg.setFromLng(legDto.getFromLng());
-                    leg.setToStopName(legDto.getToStopName());
-                    leg.setToStopType(legDto.getToStopType());
-                    leg.setToLat(legDto.getToLat());
-                    leg.setToLng(legDto.getToLng());
-                    leg.setDistanceKm(legDto.getDistanceKm());
-                    leg.setDurationMins(legDto.getDurationMins());
-                    leg.setTollCost(legDto.getTollCost());
-                    leg.setFuelCost(legDto.getFuelCost());
-                    leg.setArrivalTime(legDto.getArrivalTime());
-                    leg.setDepartureTime(legDto.getDepartureTime());
-                    leg.setStayDurationMins(legDto.getStayDurationMins());
-                    leg.setInstructions(legDto.getInstructions());
+                    leg.setSeq(legDto.getSeq() != null ? legDto.getSeq() : 1);
+                    leg.setFromStopName(legDto.getFromStopName() != null ? legDto.getFromStopName() : "Start");
+                    leg.setFromStopType(legDto.getFromStopType() != null ? legDto.getFromStopType() : "hotel");
+                    leg.setFromLat(legDto.getFromLat() != null ? legDto.getFromLat() : BigDecimal.ZERO);
+                    leg.setFromLng(legDto.getFromLng() != null ? legDto.getFromLng() : BigDecimal.ZERO);
+                    leg.setToStopName(legDto.getToStopName() != null ? legDto.getToStopName() : "Destination");
+                    leg.setToStopType(legDto.getToStopType() != null ? legDto.getToStopType() : "attraction");
+                    leg.setToLat(legDto.getToLat() != null ? legDto.getToLat() : BigDecimal.ZERO);
+                    leg.setToLng(legDto.getToLng() != null ? legDto.getToLng() : BigDecimal.ZERO);
+                    leg.setDistanceKm(legDto.getDistanceKm() != null ? legDto.getDistanceKm() : BigDecimal.ZERO);
+                    leg.setDurationMins(legDto.getDurationMins() != null ? legDto.getDurationMins() : 0);
+                    leg.setTollCost(legDto.getTollCost() != null ? legDto.getTollCost() : BigDecimal.ZERO);
+                    leg.setFuelCost(legDto.getFuelCost() != null ? legDto.getFuelCost() : BigDecimal.ZERO);
+                    leg.setArrivalTime(legDto.getArrivalTime() != null ? legDto.getArrivalTime() : "10:00");
+                    leg.setDepartureTime(legDto.getDepartureTime() != null ? legDto.getDepartureTime() : "11:00");
+                    leg.setStayDurationMins(legDto.getStayDurationMins() != null ? legDto.getStayDurationMins() : 60);
+                    leg.setInstructions(legDto.getInstructions() != null ? legDto.getInstructions() : "");
                     leg.setClosingTimeWarning(legDto.getClosingTimeWarning());
 
                     try {
@@ -402,8 +417,44 @@ public class TripService {
         }
     }
 
+    private String computeTripHash(TripPlanRequest request, City startCity, City destCity) {
+        try {
+            String raw = String.format("%s:%s:%s:%d:%d:%s:%.2f",
+                    startCity.getName().toLowerCase().trim(),
+                    destCity.getName().toLowerCase().trim(),
+                    request.getStartDate() != null ? request.getStartDate().toString() : "nodate",
+                    request.getNumDays(),
+                    request.getNumTravellers(),
+                    request.getTransportMode().toLowerCase().trim(),
+                    request.getTotalBudgetMax().doubleValue()
+            );
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            return "hash_" + startCity.getId() + "_" + destCity.getId() + "_" + request.getNumDays();
+        }
+    }
+
     private Trip saveTripRecord(TripPlanRequest request, City startCity, City destCity, TripPlanResponse planResponse) {
-        Trip trip = new Trip();
+        String tripHash = computeTripHash(request, startCity, destCity);
+        Optional<Trip> existingOpt = tripRepository.findByTripHash(tripHash);
+
+        Trip trip;
+        if (existingOpt.isPresent()) {
+            trip = existingOpt.get();
+            log.info("Deduplicating trip: Existing trip ID {} matched hash {}. Updating record.", trip.getId(), tripHash);
+            tripItemRepository.deleteByTripId(trip.getId());
+            routeOptionRepository.deleteByTripId(trip.getId());
+        } else {
+            trip = new Trip();
+            trip.setTripHash(tripHash);
+        }
+
         trip.setTripName(planResponse.getTripName());
         trip.setStartCity(startCity);
         trip.setDestinationCity(destCity);

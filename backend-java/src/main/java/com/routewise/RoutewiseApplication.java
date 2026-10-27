@@ -65,6 +65,8 @@ public class RoutewiseApplication {
                 createAttraction(attractionRepository, chennai, "Guindy National Park & Zoo", "Nature", "Urban wildlife sanctuary with blackbucks.", "09:00:00", "17:30:00", 90, "40.00", "4.20");
                 createAttraction(attractionRepository, chennai, "DakshinaChitra Heritage Village", "Heritage", "Living-history open-air museum of South Indian crafts.", "10:00:00", "18:00:00", 150, "175.00", "4.70");
                 createAttraction(attractionRepository, chennai, "Besant Nagar Elliot Beach", "Beach", "Calm sandy beach flanked by coastal cafes.", "06:00:00", "22:00:00", 60, "0.00", "4.50");
+                createAttraction(attractionRepository, chennai, "Valluvar Kottam Memorial", "Heritage", "Iconic chariot-shaped monument dedicated to the ancient Tamil philosopher-poet.", "08:30:00", "17:30:00", 60, "10.00", "4.30");
+                createAttraction(attractionRepository, chennai, "Semmozhi Poonga Botanical Garden", "Nature", "Lush 20-acre urban oasis featuring rare exotic plant species.", "10:00:00", "19:00:00", 75, "30.00", "4.40");
 
                 // Attractions for Bengaluru
                 createAttraction(attractionRepository, bengaluru, "Lalbagh Botanical Garden", "Nature", "240-acre botanical haven with Victorian glasshouse.", "06:00:00", "19:00:00", 120, "30.00", "4.70");
@@ -75,6 +77,8 @@ public class RoutewiseApplication {
                 createAttraction(attractionRepository, bengaluru, "Tipu Sultan Summer Palace", "Heritage", "Teakwood palace with ornate floral arches.", "08:30:00", "17:30:00", 60, "25.00", "4.20");
                 createAttraction(attractionRepository, bengaluru, "Bannerghatta Park Safari", "Nature", "Grand zoo and tiger safari reserve.", "09:30:00", "17:00:00", 180, "350.00", "4.50");
                 createAttraction(attractionRepository, bengaluru, "ISKCON Temple Bangalore", "Religious", "Neo-classical Vedic temple on Hare Krishna Hill.", "07:15:00", "20:30:00", 90, "0.00", "4.70");
+                createAttraction(attractionRepository, bengaluru, "HAL Heritage Centre & Aerospace Museum", "Museum", "India first aerospace museum displaying historic aircraft.", "09:00:00", "17:00:00", 90, "50.00", "4.50");
+                createAttraction(attractionRepository, bengaluru, "Sankey Tank & Promenade", "Nature", "Peaceful lake built in 1882 flanked by lush gardens and walking track.", "06:00:00", "20:00:00", 60, "10.00", "4.40");
 
                 // Attractions for Pondicherry
                 createAttraction(attractionRepository, pondicherry, "Promenade Beach & French Quarter", "Beach", "Goubert Avenue seafront with colonial villas.", "05:00:00", "23:00:00", 90, "0.00", "4.70");
@@ -85,6 +89,8 @@ public class RoutewiseApplication {
                 createAttraction(attractionRepository, pondicherry, "Pondicherry Botanical Gardens", "Nature", "French layout garden with rare flora and toy train.", "09:00:00", "18:00:00", 60, "20.00", "4.20");
                 createAttraction(attractionRepository, pondicherry, "Serenity Beach", "Beach", "Surfing hotspot with gentle waves and beach shacks.", "06:00:00", "20:00:00", 75, "0.00", "4.40");
                 createAttraction(attractionRepository, pondicherry, "Pondicherry Museum", "Museum", "Gallery of Arikamedu Roman relics and Chola bronzes.", "09:00:00", "17:00:00", 60, "30.00", "4.10");
+                createAttraction(attractionRepository, pondicherry, "Arikamedu Roman Archaeological Site", "Heritage", "Ancient Indo-Roman maritime port ruin with brick warehouse remains.", "09:00:00", "17:00:00", 60, "0.00", "4.20");
+                createAttraction(attractionRepository, pondicherry, "Ousteri Lake & Bird Sanctuary", "Nature", "Century-old freshwater lake sanctuary supporting migratory waterfowl.", "09:00:00", "17:30:00", 75, "50.00", "4.30");
 
                 // Attractions for Madurai
                 createAttraction(attractionRepository, madurai, "Meenakshi Amman Temple", "Religious", "14 gopurams and thousand-pillar hall.", "05:00:00", "21:30:00", 150, "50.00", "4.90");
@@ -95,6 +101,8 @@ public class RoutewiseApplication {
                 createAttraction(attractionRepository, madurai, "Koodal Azhagar Temple", "Religious", "Ancient Vishnu temple with 3 postures.", "05:30:00", "21:00:00", 60, "0.00", "4.60");
                 createAttraction(attractionRepository, madurai, "Samanar Hills (Jain Caves)", "Heritage", "Rock-cut caves with 9th-century Jain bas-reliefs.", "06:00:00", "18:30:00", 90, "0.00", "4.50");
                 createAttraction(attractionRepository, madurai, "Puthu Mandapam Market", "Heritage", "17th-century pillared hallway with tailors and brassware.", "09:00:00", "21:00:00", 60, "0.00", "4.40");
+                createAttraction(attractionRepository, madurai, "Thiruparankundram Murugan Temple", "Religious", "Ancient rock-cut cave temple carving into a granite hill.", "05:30:00", "19:30:00", 75, "0.00", "4.80");
+                createAttraction(attractionRepository, madurai, "Pazhamudircholai Murugan Temple", "Religious", "Sacred forest temple perched atop lush Alagar hills.", "06:00:00", "19:00:00", 60, "0.00", "4.70");
 
                 // Attractions for Coimbatore
                 createAttraction(attractionRepository, coimbatore, "Adiyogi Shiva Bust & Isha Center", "Religious", "World largest 112-ft bust sculpture of Lord Shiva.", "06:00:00", "20:00:00", 150, "0.00", "4.80");
@@ -105,67 +113,89 @@ public class RoutewiseApplication {
                 createAttraction(attractionRepository, coimbatore, "GD Car Museum", "Museum", "Collection of vintage and classic automobiles.", "09:00:00", "17:00:00", 90, "75.00", "4.70");
                 createAttraction(attractionRepository, coimbatore, "Siruvani Waterfalls & Dam", "Nature", "Scenic waterfall renowned for sweet mineral water.", "09:30:00", "15:30:00", 120, "100.00", "4.50");
                 createAttraction(attractionRepository, coimbatore, "Perur Pateeswarar Temple", "Religious", "Karikala Chola temple with stone pillar carvings.", "06:00:00", "20:00:00", 60, "0.00", "4.70");
+                createAttraction(attractionRepository, coimbatore, "Valankulam Lake Promenade", "Nature", "Revitalized lakefront promenade featuring floating jetties.", "06:00:00", "21:00:00", 60, "10.00", "4.40");
+                createAttraction(attractionRepository, coimbatore, "Brookefields Urban Center", "Heritage", "Vibrant city lifestyle and entertainment center.", "10:00:00", "22:00:00", 90, "0.00", "4.50");
 
-                // 3. Hotels (5 per city)
-                createHotel(hotelRepository, chennai, "Hostel Chennai Central", "Budget", "850.00", "4.10", "Poonamallee High Rd", "Free WiFi, AC dorms, Lockers");
-                createHotel(hotelRepository, chennai, "Mylapore Heritage Inn", "Budget", "1400.00", "4.30", "South Mada St", "Free WiFi, Breakfast, AC");
-                createHotel(hotelRepository, chennai, "The Residency Towers", "Mid-Range", "3200.00", "4.50", "T. Nagar", "Pool, Breakfast, Gym, Restaurant");
-                createHotel(hotelRepository, chennai, "Savera Hotel", "Mid-Range", "3800.00", "4.40", "Mylapore", "Pool, Piano Bar, Fitness Centre");
-                createHotel(hotelRepository, chennai, "Taj Coromandel", "Premium", "8500.00", "4.80", "Nungambakkam", "Luxury Spa, Fine Dining, Pool");
+                // 3. Hotels (6 per city)
+                createHotel(hotelRepository, chennai, "Hostel Chennai Central", "Budget", "850.00", "4.10", "Poonamallee High Rd", "Free WiFi, AC dorms, Lockers", "+91 44 2538 1201");
+                createHotel(hotelRepository, chennai, "Mylapore Heritage Inn", "Budget", "1400.00", "4.30", "South Mada St", "Free WiFi, Breakfast, AC", "+91 44 2464 8820");
+                createHotel(hotelRepository, chennai, "The Residency Towers", "Mid-Range", "3200.00", "4.50", "T. Nagar", "Pool, Breakfast, Gym, Restaurant", "+91 44 2825 3434");
+                createHotel(hotelRepository, chennai, "Savera Hotel", "Mid-Range", "3800.00", "4.40", "Mylapore", "Pool, Piano Bar, Fitness Centre", "+91 44 2811 4700");
+                createHotel(hotelRepository, chennai, "Taj Coromandel", "Premium", "8500.00", "4.80", "Nungambakkam", "Luxury Spa, Fine Dining, Pool", "+91 44 6600 2827");
+                createHotel(hotelRepository, chennai, "ITC Grand Chola", "Premium", "12500.00", "4.90", "No 63 Anna Salai, Guindy", "Palatial Architecture, 10 Dining Outlets, Spa", "+91 44 2220 0000");
 
-                createHotel(hotelRepository, bengaluru, "Zostel Bangalore", "Budget", "950.00", "4.40", "Koramangala", "Rooftop Cafe, WiFi, Games Room");
-                createHotel(hotelRepository, bengaluru, "Octave Hotel & Spa", "Budget", "1600.00", "4.20", "Marathahalli", "Free WiFi, Breakfast, AC");
-                createHotel(hotelRepository, bengaluru, "Lemon Tree Hotel Premier", "Mid-Range", "3500.00", "4.50", "Ulsoor, Near MG Road", "Pool, Gym, Free Breakfast");
-                createHotel(hotelRepository, bengaluru, "The Chancery Pavilion", "Mid-Range", "4200.00", "4.40", "Residency Road", "Outdoor Pool, 24/7 Dining");
-                createHotel(hotelRepository, bengaluru, "The Oberoi Bengaluru", "Premium", "9500.00", "4.90", "MG Road", "Tropical Gardens, Personal Butler, Spa");
+                createHotel(hotelRepository, bengaluru, "Zostel Bangalore", "Budget", "950.00", "4.40", "Koramangala", "Rooftop Cafe, WiFi, Games Room", "+91 80 4120 4455");
+                createHotel(hotelRepository, bengaluru, "Octave Hotel & Spa", "Budget", "1600.00", "4.20", "Marathahalli", "Free WiFi, Breakfast, AC", "+91 80 4350 7800");
+                createHotel(hotelRepository, bengaluru, "Lemon Tree Hotel Premier", "Mid-Range", "3500.00", "4.50", "Ulsoor, Near MG Road", "Pool, Gym, Free Breakfast", "+91 80 4480 2000");
+                createHotel(hotelRepository, bengaluru, "The Chancery Pavilion", "Mid-Range", "4200.00", "4.40", "Residency Road", "Outdoor Pool, 24/7 Dining", "+91 80 4141 4141");
+                createHotel(hotelRepository, bengaluru, "The Oberoi Bengaluru", "Premium", "9500.00", "4.90", "MG Road", "Tropical Gardens, Personal Butler, Spa", "+91 80 2558 5858");
+                createHotel(hotelRepository, bengaluru, "The Leela Palace Bengaluru", "Premium", "13500.00", "4.90", "Old Airport Road, Kodihalli", "Royal Grandeur, 6 Fine Dining venues, Butler", "+91 80 2521 1234");
 
-                createHotel(hotelRepository, pondicherry, "Dune de L Orient Guest House", "Budget", "1100.00", "4.30", "White Town", "Heritage Verandah, WiFi, AC");
-                createHotel(hotelRepository, pondicherry, "Pleasant Inn White Town", "Budget", "1500.00", "4.20", "Suffren Street", "Cycle Rental, Free WiFi, AC");
-                createHotel(hotelRepository, pondicherry, "Villa Shanti", "Mid-Range", "3900.00", "4.60", "French Quarter", "Courtyard Cafe, Boutique Rooms");
-                createHotel(hotelRepository, pondicherry, "Promenade Beach Hotel", "Mid-Range", "4600.00", "4.50", "Goubert Avenue", "Ocean View, Rooftop Lounge, Pool");
-                createHotel(hotelRepository, pondicherry, "Palais de Mahe (CGH Earth)", "Premium", "8800.00", "4.80", "Bussy Street", "Plunge Pool, Ayurvedic Center, Suites");
+                createHotel(hotelRepository, pondicherry, "Dune de L Orient Guest House", "Budget", "1100.00", "4.30", "White Town", "Heritage Verandah, WiFi, AC", "+91 413 222 6600");
+                createHotel(hotelRepository, pondicherry, "Pleasant Inn White Town", "Budget", "1500.00", "4.20", "Suffren Street", "Cycle Rental, Free WiFi, AC", "+91 413 234 5090");
+                createHotel(hotelRepository, pondicherry, "Villa Shanti", "Mid-Range", "3900.00", "4.60", "French Quarter", "Courtyard Cafe, Boutique Rooms", "+91 413 420 0028");
+                createHotel(hotelRepository, pondicherry, "Promenade Beach Hotel", "Mid-Range", "4600.00", "4.50", "Goubert Avenue", "Ocean View, Rooftop Lounge, Pool", "+91 413 222 7750");
+                createHotel(hotelRepository, pondicherry, "Palais de Mahe (CGH Earth)", "Premium", "8800.00", "4.80", "Bussy Street", "Plunge Pool, Ayurvedic Center, Suites", "+91 413 230 0100");
+                createHotel(hotelRepository, pondicherry, "Accord Puducherry", "Premium", "6200.00", "4.60", "Tilagar Nagar, Ellaipillaichavady", "Large Pool, Season Multi-Cuisine, Gym & Spa", "+91 413 229 9000");
 
-                createHotel(hotelRepository, madurai, "Temple View Stay", "Budget", "800.00", "4.20", "Town Hall Road", "Clean Rooms, Hot Water, 24/7 Desk");
-                createHotel(hotelRepository, madurai, "Hotel Supreme", "Budget", "1350.00", "4.10", "West Perumal Maistry St", "Rooftop Restaurant, AC");
-                createHotel(hotelRepository, madurai, "Fortune Pandiyan Hotel", "Mid-Range", "2800.00", "4.40", "Race Course Colony", "Swimming Pool, Orchid Multi-Cuisine");
-                createHotel(hotelRepository, madurai, "Courtyard by Marriott Madurai", "Mid-Range", "4200.00", "4.60", "Alagar Kovil Road", "Infinity Pool, 24/7 Gym, Buffet");
-                createHotel(hotelRepository, madurai, "Heritage Madurai", "Premium", "7500.00", "4.80", "Kochadai", "Banyan Tree Villas, Temple Pool, Spa");
+                createHotel(hotelRepository, madurai, "Temple View Stay", "Budget", "800.00", "4.20", "Town Hall Road", "Clean Rooms, Hot Water, 24/7 Desk", "+91 452 234 1199");
+                createHotel(hotelRepository, madurai, "Hotel Supreme", "Budget", "1350.00", "4.10", "West Perumal Maistry St", "Rooftop Restaurant, AC", "+91 452 234 3151");
+                createHotel(hotelRepository, madurai, "Fortune Pandiyan Hotel", "Mid-Range", "2800.00", "4.40", "Race Course Colony", "Swimming Pool, Orchid Multi-Cuisine", "+91 452 435 6789");
+                createHotel(hotelRepository, madurai, "Courtyard by Marriott Madurai", "Mid-Range", "4200.00", "4.60", "Alagar Kovil Road", "Infinity Pool, 24/7 Gym, Buffet", "+91 452 425 5555");
+                createHotel(hotelRepository, madurai, "Heritage Madurai", "Premium", "7500.00", "4.80", "Kochadai", "Banyan Tree Villas, Temple Pool, Spa", "+91 452 238 5455");
+                createHotel(hotelRepository, madurai, "Gateway Hotel Pasumalai Madurai", "Premium", "6800.00", "4.70", "TPK Road, Pasumalai", "Colonial Hilltop Estate, Peacocks, Pool, Spa", "+91 452 663 3000");
 
-                createHotel(hotelRepository, coimbatore, "City Backpackers Hostel", "Budget", "750.00", "4.00", "Gandhipuram", "WiFi, AC, Lockers, Lounge");
-                createHotel(hotelRepository, coimbatore, "Hotel Alankar Grande", "Budget", "1600.00", "4.30", "Ram Nagar", "Free Breakfast, Free WiFi");
-                createHotel(hotelRepository, coimbatore, "Zone by The Park Coimbatore", "Mid-Range", "3100.00", "4.50", "Avinashi Road", "Lounge, Gym, Buffet, WiFi");
-                createHotel(hotelRepository, coimbatore, "The Residency Towers Coimbatore", "Mid-Range", "4000.00", "4.60", "Race Course", "Pool, Afghan Grill, 24-hr Cafe");
-                createHotel(hotelRepository, coimbatore, "Radisson Blu Coimbatore", "Premium", "7800.00", "4.70", "Peelamedu", "Rooftop Pool, Spa, Fine Dining");
+                createHotel(hotelRepository, coimbatore, "City Backpackers Hostel", "Budget", "750.00", "4.00", "Gandhipuram", "WiFi, AC, Lockers, Lounge", "+91 422 252 8800");
+                createHotel(hotelRepository, coimbatore, "Hotel Alankar Grande", "Budget", "1600.00", "4.30", "Ram Nagar", "Free Breakfast, Free WiFi", "+91 422 437 8888");
+                createHotel(hotelRepository, coimbatore, "Zone by The Park Coimbatore", "Mid-Range", "3100.00", "4.50", "Avinashi Road", "Lounge, Gym, Buffet, WiFi", "+91 422 400 5000");
+                createHotel(hotelRepository, coimbatore, "The Residency Towers Coimbatore", "Mid-Range", "4000.00", "4.60", "Race Course", "Pool, Afghan Grill, 24-hr Cafe", "+91 422 224 1414");
+                createHotel(hotelRepository, coimbatore, "Radisson Blu Coimbatore", "Premium", "7800.00", "4.70", "Peelamedu", "Rooftop Pool, Spa, Fine Dining", "+91 422 222 6000");
+                createHotel(hotelRepository, coimbatore, "Vivanta Coimbatore", "Premium", "7200.00", "4.70", "Race Course Road, Gopalapuram", "Taj Hospitality, Outdoor Pool, Jiva Spa", "+91 422 668 1000");
 
-                // 4. Restaurants (5 per city)
+                // 4. Restaurants (8 per city)
                 createRestaurant(restaurantRepository, chennai, "Murugan Idli Shop", "South Indian", "140.00", "4.60", "Breakfast", "GN Chetty Rd");
                 createRestaurant(restaurantRepository, chennai, "Saravana Bhavan Mylapore", "Pure Veg South Indian", "180.00", "4.40", "Breakfast", "North Mada St");
+                createRestaurant(restaurantRepository, chennai, "Rayar Mess", "Traditional Mylapore Tiffin", "110.00", "4.70", "Breakfast", "Arundale St, Mylapore");
                 createRestaurant(restaurantRepository, chennai, "Sangeetha Veg", "Vegetarian Multi-Cuisine", "260.00", "4.30", "Lunch", "Cathedral Road");
+                createRestaurant(restaurantRepository, chennai, "Junior Kuppanna", "Kongu & Seeraga Samba Biryani", "380.00", "4.50", "Lunch", "Cathedral Road, Teynampet");
                 createRestaurant(restaurantRepository, chennai, "Anjappar Chettinad", "Chettinad & Biryani", "420.00", "4.50", "Dinner", "Anna Salai");
+                createRestaurant(restaurantRepository, chennai, "The Marina Seafood", "Fresh Coastal Seafood & Grills", "750.00", "4.70", "Dinner", "College Road, Nungambakkam");
                 createRestaurant(restaurantRepository, chennai, "Dakshin Fine Dining", "South Indian Coastal", "950.00", "4.80", "Dinner", "TTK Road");
 
                 createRestaurant(restaurantRepository, bengaluru, "Vidyarthi Bhavan", "Karnataka Tiffin & Dosa", "120.00", "4.70", "Breakfast", "Gandhi Bazaar");
                 createRestaurant(restaurantRepository, bengaluru, "MTR (Mavalli Tiffin Room)", "Authentic South Indian", "190.00", "4.60", "Breakfast", "Lalbagh Road");
+                createRestaurant(restaurantRepository, bengaluru, "Brahmin Coffee Bar", "Traditional Idli & Vada", "90.00", "4.80", "Breakfast", "Ranga Rao Rd, Shankarapura");
                 createRestaurant(restaurantRepository, bengaluru, "Nagarjuna Andhra Style", "Andhra Meals & Biryani", "380.00", "4.50", "Lunch", "Residency Road");
+                createRestaurant(restaurantRepository, bengaluru, "Shivaji Military Hotel", "Famous Donne Biryani", "320.00", "4.60", "Lunch", "8th Block, Jayanagar");
                 createRestaurant(restaurantRepository, bengaluru, "Toit Brewpub", "Continental & Bites", "650.00", "4.70", "Dinner", "100 Feet Rd");
+                createRestaurant(restaurantRepository, bengaluru, "Windmills Craftworks", "Artisan Craft Beer & Gourmet Grill", "850.00", "4.80", "Dinner", "EPIP Zone, Whitefield");
                 createRestaurant(restaurantRepository, bengaluru, "Karavalli Seafood", "Coastal South Indian", "1100.00", "4.90", "Dinner", "Residency Road");
 
                 createRestaurant(restaurantRepository, pondicherry, "Indian Kaffe Express", "Cafe & Pancakes", "180.00", "4.40", "Breakfast", "Dumas Street");
+                createRestaurant(restaurantRepository, pondicherry, "Baker Street French Bakery", "Artisanal Croissants & Espresso", "220.00", "4.60", "Breakfast", "Bussy Street, MG Road Area");
                 createRestaurant(restaurantRepository, pondicherry, "Surguru Vegetarian", "South Indian Thali", "160.00", "4.30", "Lunch", "Sardar Patel Salai");
                 createRestaurant(restaurantRepository, pondicherry, "Cafe des Arts", "French Cafe & Crepes", "320.00", "4.60", "Lunch", "Suffren Street");
+                createRestaurant(restaurantRepository, pondicherry, "Appachi Chettinad Traditional Mess", "Authentic Chettinad Meals", "350.00", "4.50", "Lunch", "Ranga Pillai St, MG Road");
                 createRestaurant(restaurantRepository, pondicherry, "Coromandel Cafe", "Continental & Artisan", "580.00", "4.70", "Dinner", "Romain Rolland St");
+                createRestaurant(restaurantRepository, pondicherry, "Carte Blanche", "Creole French Seafood Cuisine", "780.00", "4.70", "Dinner", "Romain Rolland St, White Town");
                 createRestaurant(restaurantRepository, pondicherry, "La Villa Dining", "French Gourmet", "900.00", "4.80", "Dinner", "Surcouf Street");
 
                 createRestaurant(restaurantRepository, madurai, "Murugan Idli Shop West Masi", "Madurai Ghee Idli", "130.00", "4.70", "Breakfast", "West Masi Street");
+                createRestaurant(restaurantRepository, madurai, "Modern Restaurant", "Authentic Madurai Pongal & Coffee", "120.00", "4.50", "Breakfast", "Netaji Road, Madurai Main");
                 createRestaurant(restaurantRepository, madurai, "Sree Sabarees Vegetarian", "Traditional Meals", "170.00", "4.40", "Lunch", "West Perumal Maistry St");
                 createRestaurant(restaurantRepository, madurai, "Amma Mess", "Madurai Non-Veg Special", "350.00", "4.60", "Lunch", "Alagar Kovil Road");
+                createRestaurant(restaurantRepository, madurai, "Konar Mess", "Legendary Kari Dosa & Kola Urundai", "340.00", "4.70", "Lunch", "North Veli Street, Simmakkal");
                 createRestaurant(restaurantRepository, madurai, "Kumar Mess", "Chettinad & Mutton Biryani", "400.00", "4.50", "Dinner", "100 Feet Road");
+                createRestaurant(restaurantRepository, madurai, "Sree Chitra Mess", "Traditional Pure Veg Plantain Leaf Meals", "190.00", "4.40", "Dinner", "West Perumal Maistry St");
                 createRestaurant(restaurantRepository, madurai, "Bells Plate Multi-Cuisine", "North Indian & Kebabs", "600.00", "4.30", "Dinner", "West Perumal Maistry St");
 
                 createRestaurant(restaurantRepository, coimbatore, "Sree Annapoorna", "Coimbatore Sambar & Coffee", "150.00", "4.70", "Breakfast", "RS Puram");
                 createRestaurant(restaurantRepository, coimbatore, "Aryas Pure Veg", "South Indian Breakfast", "140.00", "4.30", "Breakfast", "Gandhipuram");
+                createRestaurant(restaurantRepository, coimbatore, "Geetha Cafe", "Heritage Ghee Roast & Vadai", "110.00", "4.50", "Breakfast", "Geetha Hall Road, Near Railway Station");
                 createRestaurant(restaurantRepository, coimbatore, "Haribhavanam", "Kongunadu Meals", "360.00", "4.60", "Lunch", "Avinashi Road");
+                createRestaurant(restaurantRepository, coimbatore, "Junior Kuppanna Coimbatore", "Kongu Mutton Biryani & Nalli Fry", "370.00", "4.60", "Lunch", "Gandhipuram 7th Cross");
                 createRestaurant(restaurantRepository, coimbatore, "Bird On Tree", "Continental & Fine Indian", "600.00", "4.50", "Dinner", "Race Course Road");
+                createRestaurant(restaurantRepository, coimbatore, "Afghan Grill at Residency", "Rooftop Frontier Cuisine & Kebabs", "750.00", "4.70", "Dinner", "Avinashi Rd, Race Course");
                 createRestaurant(restaurantRepository, coimbatore, "The French Door Cafe", "French Bistro & Grill", "850.00", "4.70", "Dinner", "RS Puram");
 
                 // 5. Inter-City Routes
@@ -210,7 +240,7 @@ public class RoutewiseApplication {
         repo.save(a);
     }
 
-    private void createHotel(HotelRepository repo, City city, String name, String tier, String price, String rating, String addr, String amenities) {
+    private void createHotel(HotelRepository repo, City city, String name, String tier, String price, String rating, String addr, String amenities, String phone) {
         Hotel h = new Hotel();
         h.setCity(city);
         h.setName(name);
@@ -219,6 +249,7 @@ public class RoutewiseApplication {
         h.setRating(new BigDecimal(rating));
         h.setAddress(addr);
         h.setAmenities(amenities);
+        h.setContactPhone(phone);
         repo.save(h);
     }
 

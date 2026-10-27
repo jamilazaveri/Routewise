@@ -603,24 +603,62 @@ async function loadSavedTrips() {
     }
 
     list.innerHTML = trips.map(t => `
-      <div class="trip-item-card">
-        <div>
-          <h4 style="font-weight:700;">${t.tripName}</h4>
-          <p style="font-size:0.8rem;color:#64748b;">
-            ${t.startCity?.name || "Origin"} ➔ ${t.destinationCity?.name || "Destination"} • ${t.numDays} Days • ${t.numTravellers} Travellers (${t.transportMode.toUpperCase()})
+      <div class="trip-item-card" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="loadSavedTripById(${t.id})">
+        <div style="flex:1;">
+          <h4 style="font-weight:700;margin-bottom:4px;">${t.tripName}</h4>
+          <p style="font-size:0.8rem;color:#64748b;margin:0;">
+            ${t.startCity?.name || "Origin"} ➔ ${t.destinationCity?.name || "Destination"} • ${t.numDays} Days • ${t.numTravellers} Travellers (${(t.transportMode || "car").toUpperCase()})
           </p>
+          <span style="font-size:0.72rem;color:#94a3b8;">Trip ID: #${t.id}</span>
         </div>
-        <div style="text-align:right;">
-          <div style="font-weight:800;color:var(--primary);">₹${Math.round(t.totalEstimatedCost || 0).toLocaleString("en-IN")}</div>
-          <span style="font-size:0.72rem;color:${t.isFeasible ? '#10b981' : '#f59e0b'};font-weight:700;">
-            ${t.isFeasible ? "✓ Feasible" : "⚠️ Over Budget"}
-          </span>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="text-align:right;">
+            <div style="font-weight:800;color:var(--primary);">₹${Math.round(t.totalEstimatedCost || 0).toLocaleString("en-IN")}</div>
+            <span style="font-size:0.72rem;color:${t.isFeasible ? '#10b981' : '#f59e0b'};font-weight:700;">
+              ${t.isFeasible ? "✓ Feasible" : "⚠️ Over Budget"}
+            </span>
+          </div>
+          <button type="button" class="small-btn" style="background:#fee2e2;color:#b91c1c;border-color:#fca5a5;padding:4px 8px;font-size:12px;" onclick="deleteSavedTrip(${t.id}, event)" title="Delete this trip">
+            🗑️ Delete
+          </button>
         </div>
       </div>
     `).join("");
   } catch (err) {
     list.innerHTML = `<p style="color:#ef4444;">Failed to load saved trips: ${err.message}</p>`;
   }
+}
+
+async function deleteSavedTrip(tripId, event) {
+  if (event) event.stopPropagation();
+  if (!confirm(`Delete trip #${tripId}? This will remove its itinerary, budget calculations, and saved routes.`)) {
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/trips/${tripId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Delete failed");
+    loadSavedTrips();
+  } catch (err) {
+    alert("Could not delete trip: " + err.message);
+  }
+}
+
+async function clearTripHistory() {
+  if (!confirm("Are you sure you want to permanently delete ALL saved trips? This cannot be undone.")) {
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/trips`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Clear history failed");
+    loadSavedTrips();
+  } catch (err) {
+    alert("Could not clear history: " + err.message);
+  }
+}
+
+async function loadSavedTripById(tripId) {
+  loadRouteOptionsForTrip(tripId);
+  switchTab("routesTab");
 }
 
 async function checkServicesHealth() {
