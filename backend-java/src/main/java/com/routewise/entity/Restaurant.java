@@ -33,6 +33,12 @@ public class Restaurant {
     @Column(name = "meal_type", nullable = false, length = 50)
     private String mealType = "All"; // Breakfast, Lunch, Dinner, All
 
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+
     public Restaurant() {}
 
     public Long getId() { return id; }
@@ -58,4 +64,10 @@ public class Restaurant {
 
     public String getMealType() { return mealType; }
     public void setMealType(String mealType) { this.mealType = mealType; }
+
+    public BigDecimal getLatitude() { return latitude; }
+    public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
+
+    public BigDecimal getLongitude() { return longitude; }
+    public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
 }

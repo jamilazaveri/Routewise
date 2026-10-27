@@ -136,6 +136,37 @@ Routewise/
   - Suggests budget backpacker dorms/hostels (e.g. ₹750–₹950/night).
   - Prioritizes free public landmarks and temples.
 
+### 7. Multi-Style Route Planning & Interactive Map (Leaflet + OpenStreetMap)
+Routewise connects selected hotels, restaurants, and attractions into one ordered itinerary lane across 5 distinct route styles:
+
+| Route Style | Optimization Objective | Mathematical Cost Function | Key Driving Characteristic |
+|---|---|---|---|
+| **⚡ Fastest** | Minimum travel time | $W = \text{travel\_time}$ | Prioritizes express links, grade-separated bypasses, and arterial avenues. |
+| **📏 Shortest** | Minimum physical distance | $W = \text{distance}$ | Minimizes odometer kilometers across consecutive stops. |
+| **💰 Cheapest** | Minimum fuel + toll cost | $W = \text{fuel\_cost} + \text{toll\_cost}$ | Avoids toll expressways and reduces fuel burn. |
+| **🌊 Scenic** | Maximizes scenic views | $W = \text{distance} \times (1 - \text{scenic\_score})$ | Passes coastal boulevards (e.g. Marina Beach, ECR), parks & heritage quarters. **Hard cap: max 25% detour over fastest route.** |
+| **🛣️ Easiest** | Least driving stress | $W = \text{travel\_time} + \text{turns} \times 0.5 + \text{congestion\_penalty}$ | Minimizes tight turns, avoids congested alleys, prefers wide main roads. |
+
+#### Core Stop-Ordering Algorithm:
+1. **Nearest-Neighbour (NN) Initialization**:
+   Constructs a candidate tour starting from the origin hotel, respecting time-windows:
+   - Attraction opening and closing times.
+   - Lunch window between 12:00 and 14:00.
+   - Dinner window between 19:00 and 21:30.
+   - Hotel check-in and checkout timings.
+2. **2-Opt Local Search Improvement**:
+   Systematically reverses pairs of tour edges $(i, j)$ and accepts inversions that strictly decrease the route style's cost function while preserving time-window feasibility.
+3. **Real Road Geometry & MySQL Caching**:
+   - Queries OSRM (Open Source Routing Machine) or OpenRouteService for actual driving distances, durations, and turn geometry coordinates.
+   - Caches segments in MySQL (`route_segments`) so repeated requests avoid redundant network roundtrips.
+   - Robust Haversine fallback with realistic road factors (1.3×) ensures zero disruption if external routing APIs are unavailable.
+4. **Leaflet + OpenStreetMap Interactive Map**:
+   - Numbered, color-coded markers for each stop: Hotel (Blue 🏨), Dining (Orange 🍽️), Sights (Purple 🏛️).
+   - Real roadway polyline overlays colored per route style.
+   - Side-by-side comparison table of all 5 route styles (Distance, Travel Time, Fuel, Tolls, Total Cost, Scenic Index).
+   - Chronological timeline with arrival, stay duration, departure, and hop-by-hop instructions.
+   - Automatic warnings if a stop is reached past closing time with reordering suggestions.
+
 ---
 
 ## Setup & Running the Services
@@ -250,6 +281,8 @@ python -m unittest -v test_service.py
 - Hotel value scoring & budget fitting
 - Budget re-allocation proportional distribution
 - Infeasible budget detection and cheapest alternative generation
+- Stop ordering heuristic and time-window constraints (lunch 12-2, dinner 7-9, attraction opening/closing)
+- 5 Route scoring comparisons (Fastest, Shortest, Cheapest, Scenic, Easiest)
 
 ### Java Spring Boot Tests
 ```bash
@@ -259,6 +292,7 @@ mvn test
 **Tests verify:**
 - `BudgetLogicTest`: Room requirement formulas, percentage share integrity, highway distance/mileage/fuel formulas, feasibility deficit verification.
 - `TripServiceTest`: Mockito tests for identical origin/destination rejection, min/max budget validation, and end-to-end trip planning with mock persistence.
+- `RoutePlanningTest`: Shortest route distance minimization, cheapest route toll-avoidance logic, scenic route 25% detour cap compliance, easiest route turn & congestion penalty scoring, and scenic weight formulas.
 
 ---
 

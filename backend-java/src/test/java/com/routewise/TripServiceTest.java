@@ -50,6 +50,15 @@ public class TripServiceTest {
     private TripItemRepository tripItemRepository;
 
     @Mock
+    private RouteOptionRepository routeOptionRepository;
+
+    @Mock
+    private RouteLegRepository routeLegRepository;
+
+    @Mock
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
+    @Mock
     private PythonMicroserviceClient pythonClient;
 
     @InjectMocks

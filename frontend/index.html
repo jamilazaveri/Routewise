@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS & JS (Free, OpenStreetMap, no API key needed) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
 
@@ -315,6 +318,7 @@
         <div class="tabs-container">
           <div class="tabs-nav">
             <button type="button" class="tab-btn active" onclick="switchTab('itineraryTab')">📅 Day-by-Day Itinerary</button>
+            <button type="button" class="tab-btn" onclick="switchTab('routesTab')">🗺️ Route Styles & Map</button>
             <button type="button" class="tab-btn" onclick="switchTab('hotelsTab')">🏨 Hotels</button>
             <button type="button" class="tab-btn" onclick="switchTab('restaurantsTab')">🍽️ Restaurants</button>
             <button type="button" class="tab-btn" onclick="switchTab('attractionsTab')">🏛️ Attractions</button>
@@ -326,6 +330,199 @@
             <div id="itineraryTimeline" class="itinerary-timeline">
               <!-- Dynamically populated -->
             </div>
+          </div>
+
+          <!-- Tab 1.5: Route Styles & Interactive Leaflet Map -->
+          <div id="routesTab" class="tab-pane">
+            <div class="tab-header">
+              <div>
+                <h3>Multi-Style Route Planning & Map</h3>
+                <p>Connects hotels, dining spots & sights into one ordered lane using Nearest-Neighbour heuristic + 2-Opt optimization.</p>
+              </div>
+              <button type="button" class="small-btn primary-small-btn" onclick="loadRouteOptionsForTrip()">🔄 Recalculate Routes</button>
+            </div>
+
+            <!-- Route Type Selection Cards -->
+            <div class="route-types-grid" id="routeTypesGrid">
+              <div class="route-type-card active" data-type="fastest" onclick="selectRouteType('fastest')">
+                <div class="rtc-header">
+                  <span class="rtc-icon">⚡</span>
+                  <span class="rtc-title">Fastest</span>
+                  <span class="rtc-tag" id="tag-fastest">Top Speed</span>
+                </div>
+                <div class="rtc-metrics">
+                  <span class="metric" id="card-time-fastest">-- mins</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-dist-fastest">-- km</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-cost-fastest">₹--</span>
+                </div>
+                <p class="rtc-desc">Min travel time via bypasses & arterial express links.</p>
+              </div>
+
+              <div class="route-type-card" data-type="shortest" onclick="selectRouteType('shortest')">
+                <div class="rtc-header">
+                  <span class="rtc-icon">📏</span>
+                  <span class="rtc-title">Shortest</span>
+                  <span class="rtc-tag" id="tag-shortest">Min Distance</span>
+                </div>
+                <div class="rtc-metrics">
+                  <span class="metric" id="card-time-shortest">-- mins</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-dist-shortest">-- km</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-cost-shortest">₹--</span>
+                </div>
+                <p class="rtc-desc">Direct odometer distance across consecutive stops.</p>
+              </div>
+
+              <div class="route-type-card" data-type="cheapest" onclick="selectRouteType('cheapest')">
+                <div class="rtc-header">
+                  <span class="rtc-icon">💰</span>
+                  <span class="rtc-title">Cheapest</span>
+                  <span class="rtc-tag" id="tag-cheapest">Lowest Fuel & Toll</span>
+                </div>
+                <div class="rtc-metrics">
+                  <span class="metric" id="card-time-cheapest">-- mins</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-dist-cheapest">-- km</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-cost-cheapest">₹--</span>
+                </div>
+                <p class="rtc-desc">Minimizes fuel consumption and avoids toll highways.</p>
+              </div>
+
+              <div class="route-type-card" data-type="scenic" onclick="selectRouteType('scenic')">
+                <div class="rtc-header">
+                  <span class="rtc-icon">🌊</span>
+                  <span class="rtc-title">Scenic</span>
+                  <span class="rtc-tag" id="tag-scenic">Most Scenic</span>
+                </div>
+                <div class="rtc-metrics">
+                  <span class="metric" id="card-time-scenic">-- mins</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-dist-scenic">-- km</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-cost-scenic">₹--</span>
+                </div>
+                <p class="rtc-desc">Passes coastlines, parks & heritage spots (max 25% detour cap).</p>
+              </div>
+
+              <div class="route-type-card" data-type="easiest" onclick="selectRouteType('easiest')">
+                <div class="rtc-header">
+                  <span class="rtc-icon">🛣️</span>
+                  <span class="rtc-title">Easiest</span>
+                  <span class="rtc-tag" id="tag-easiest">Least Stressful</span>
+                </div>
+                <div class="rtc-metrics">
+                  <span class="metric" id="card-time-easiest">-- mins</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-dist-easiest">-- km</span>
+                  <span class="sep">•</span>
+                  <span class="metric" id="card-cost-easiest">₹--</span>
+                </div>
+                <p class="rtc-desc">Fewer turns, fewer complex junctions, wider main avenues.</p>
+              </div>
+            </div>
+
+            <!-- Warning Banner for Late Arrivals / Closing Times -->
+            <div id="routeWarningBanner" class="route-warning-banner hidden">
+              <span class="warn-icon">⚠️</span>
+              <div class="warn-body">
+                <strong>Schedule Warning:</strong>
+                <span id="routeWarningText">A stop will be reached after its closing time.</span>
+                <span class="warn-hint">Suggestion: Reorder this stop earlier in the day or adjust departure time.</span>
+              </div>
+            </div>
+
+            <!-- Active Route Summary Info -->
+            <div class="active-route-summary" id="activeRouteSummary">
+              <div class="ars-tag" id="activeRouteTag">⚡ Fastest Route</div>
+              <div class="ars-details">
+                <span id="arsStats">Total: 0 km • 0 mins • ₹0 estimated cost • Scenic Rating: 0.0 / 1.0</span>
+              </div>
+              <div class="ars-formula" id="arsFormula">Optimization Weight: Minimum travel time via real highway networks</div>
+            </div>
+
+            <!-- Leaflet Interactive Map -->
+            <div class="map-wrapper">
+              <div id="routeMap" class="route-map"></div>
+              <div class="map-legend">
+                <span class="legend-item"><span class="marker-dot hotel-dot">🏨</span> Hotel</span>
+                <span class="legend-item"><span class="marker-dot food-dot">🍽️</span> Restaurant</span>
+                <span class="legend-item"><span class="marker-dot sight-dot">🏛️</span> Attraction</span>
+                <span class="legend-item"><span class="route-line-sample"></span> Road Route (OSRM Geometry)</span>
+              </div>
+            </div>
+
+            <!-- Side-by-Side Comparison Table -->
+            <div class="comparison-section">
+              <h4>Side-by-Side Route Comparison</h4>
+              <div class="table-responsive">
+                <table class="route-comparison-table" id="routeComparisonTable">
+                  <thead>
+                    <tr>
+                      <th>Route Style</th>
+                      <th>Tag</th>
+                      <th>Total Distance</th>
+                      <th>Est. Driving Time</th>
+                      <th>Fuel Cost</th>
+                      <th>Toll Cost</th>
+                      <th>Total Cost</th>
+                      <th>Scenic Index</th>
+                      <th>Stops</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="comparisonTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Chronological Timeline View -->
+            <div class="route-timeline-section">
+              <h4>Ordered Stop Timeline & Leg Instructions</h4>
+              <p class="sub-text">Sequential navigation lane with arrival times, recommended stay durations, departure times, and leg-by-leg metrics.</p>
+              <div class="route-timeline-list" id="routeTimelineList">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Stop Details Modal / Popup View -->
+            <div id="stopDetailsModal" class="stop-details-modal hidden">
+              <div class="modal-card">
+                <div class="modal-header">
+                  <h4 id="sdName">Stop Details</h4>
+                  <button type="button" class="close-modal-btn" onclick="closeStopModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                  <div class="sd-badges" id="sdBadges"></div>
+                  <p id="sdAddress" class="sd-address"></p>
+                  <div class="sd-stats-grid">
+                    <div class="sd-stat">
+                      <span class="sd-label">Opening Hours</span>
+                      <span class="sd-val" id="sdHours">--</span>
+                    </div>
+                    <div class="sd-stat">
+                      <span class="sd-label">Price / Cost</span>
+                      <span class="sd-val" id="sdPrice">--</span>
+                    </div>
+                    <div class="sd-stat">
+                      <span class="sd-label">Guest Rating</span>
+                      <span class="sd-val" id="sdRating">--</span>
+                    </div>
+                    <div class="sd-stat">
+                      <span class="sd-label">Scenic Score</span>
+                      <span class="sd-val" id="sdScenic">--</span>
+                    </div>
+                  </div>
+                  <p id="sdDescription" class="sd-desc"></p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Tab 2: Hotels -->

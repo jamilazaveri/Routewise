@@ -3,6 +3,8 @@ package com.routewise.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.routewise.dto.BudgetReallocateRequest;
+import com.routewise.dto.MultiRoutePlanRequest;
+import com.routewise.dto.MultiRoutePlanResponse;
 import com.routewise.dto.ReallocateResponse;
 import com.routewise.dto.TripPlanRequest;
 import com.routewise.dto.TripPlanResponse;
@@ -404,5 +406,171 @@ public class PythonMicroserviceClient {
                 req.getTotalBudgetMax(),
                 "Reallocated " + cat + " to " + newShare + "%. Remaining shares adjusted proportionally."
         );
+    }
+
+    /**
+     * Calls the FastAPI microservice to plan and compare the 5 route styles.
+     */
+    public MultiRoutePlanResponse planRoutes(MultiRoutePlanRequest request) {
+        String endpoint = microserviceUrl + "/plan-routes";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<MultiRoutePlanRequest> entity = new HttpEntity<>(request, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    endpoint,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                MultiRoutePlanResponse result = objectMapper.readValue(response.getBody(), MultiRoutePlanResponse.class);
+                result.setTripId(request.getTripId());
+                return result;
+            }
+        } catch (Exception ex) {
+            log.warn("FastAPI microservice /plan-routes call failed: {}. Generating local fallback routes.", ex.getMessage());
+        }
+
+        return generateLocalFallbackRoutes(request);
+    }
+
+    private MultiRoutePlanResponse generateLocalFallbackRoutes(MultiRoutePlanRequest request) {
+        MultiRoutePlanResponse response = new MultiRoutePlanResponse();
+        response.setTripId(request.getTripId());
+        response.setCityName(request.getCityName());
+        response.setTransportMode(request.getTransportMode());
+
+        List<MultiRoutePlanRequest.StopItemDto> stops = request.getStops();
+        if (stops == null || stops.isEmpty()) {
+            return response;
+        }
+
+        String[] types = {"fastest", "shortest", "cheapest", "scenic", "easiest"};
+        String[] tags = {"⚡ Fastest", "📏 Shortest", "💰 Cheapest", "🌊 Scenic", "🛣️ Easiest"};
+        String[] summaries = {
+                "Minimum travel time, prioritizing express links & bypasses.",
+                "Minimum driving distance across consecutive stops.",
+                "Minimum total fuel & toll expenditure.",
+                "Passes coastal roads, parks & historic quarters with scenic views.",
+                "Fewer turns and wider main roads for relaxed driving."
+        };
+
+        for (int t = 0; t < types.length; t++) {
+            String rType = types[t];
+            MultiRoutePlanResponse.RouteDetailDto detail = new MultiRoutePlanResponse.RouteDetailDto();
+            detail.setRouteType(rType);
+            detail.setTag(tags[t]);
+            detail.setSummary(summaries[t]);
+
+            List<MultiRoutePlanResponse.LegDto> legs = new ArrayList<>();
+            BigDecimal totalDist = BigDecimal.ZERO;
+            int totalTime = 0;
+            BigDecimal totalFuel = BigDecimal.ZERO;
+            BigDecimal totalToll = BigDecimal.ZERO;
+
+            int currentHour = 9;
+            int currentMinute = 0;
+
+            for (int i = 0; i < stops.size() - 1; i++) {
+                MultiRoutePlanRequest.StopItemDto from = stops.get(i);
+                MultiRoutePlanRequest.StopItemDto to = stops.get(i + 1);
+
+                double lat1 = from.getLatitude() != null ? from.getLatitude().doubleValue() : 13.0827;
+                double lon1 = from.getLongitude() != null ? from.getLongitude().doubleValue() : 80.2707;
+                double lat2 = to.getLatitude() != null ? to.getLatitude().doubleValue() : 13.0827;
+                double lon2 = to.getLongitude() != null ? to.getLongitude().doubleValue() : 80.2707;
+
+                // Haversine
+                double dLat = Math.toRadians(lat2 - lat1);
+                double dLon = Math.toRadians(lon2 - lon1);
+                double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                        + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                double km = 6371.0 * c * 1.3; // road factor
+                if (km < 0.5) km = 1.0;
+
+                int legDuration = Math.max(3, (int) Math.round((km / 30.0) * 60.0));
+                BigDecimal legDistBd = BigDecimal.valueOf(km).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal legFuelBd = legDistBd.multiply(BigDecimal.valueOf(6.8)).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal legTollBd = BigDecimal.ZERO;
+
+                totalDist = totalDist.add(legDistBd);
+                totalTime += legDuration;
+                totalFuel = totalFuel.add(legFuelBd);
+                totalToll = totalToll.add(legTollBd);
+
+                // arrival time
+                currentMinute += legDuration;
+                while (currentMinute >= 60) {
+                    currentHour += 1;
+                    currentMinute -= 60;
+                }
+                String arrivalTime = String.format("%02d:%02d", currentHour, currentMinute);
+
+                int stayMins = to.getDurationHours() != null ? (int) (to.getDurationHours() * 60) : 60;
+                currentMinute += stayMins;
+                while (currentMinute >= 60) {
+                    currentHour += 1;
+                    currentMinute -= 60;
+                }
+                String departureTime = String.format("%02d:%02d", currentHour, currentMinute);
+
+                MultiRoutePlanResponse.LegDto leg = new MultiRoutePlanResponse.LegDto();
+                leg.setSeq(i + 1);
+                leg.setFromStopName(from.getName());
+                leg.setFromStopType(from.getType());
+                leg.setFromLat(BigDecimal.valueOf(lat1));
+                leg.setFromLng(BigDecimal.valueOf(lon1));
+                leg.setToStopName(to.getName());
+                leg.setToStopType(to.getType());
+                leg.setToLat(BigDecimal.valueOf(lat2));
+                leg.setToLng(BigDecimal.valueOf(lon2));
+                leg.setDistanceKm(legDistBd);
+                leg.setDurationMins(legDuration);
+                leg.setFuelCost(legFuelBd);
+                leg.setTollCost(legTollBd);
+                leg.setArrivalTime(arrivalTime);
+                leg.setDepartureTime(departureTime);
+                leg.setStayDurationMins(stayMins);
+                leg.setInstructions("Drive from " + from.getName() + " to " + to.getName() + " (" + legDistBd + " km)");
+
+                List<List<Double>> geom = new ArrayList<>();
+                geom.add(Arrays.asList(lat1, lon1));
+                geom.add(Arrays.asList(lat2, lon2));
+                leg.setGeometry(geom);
+
+                legs.add(leg);
+            }
+
+            detail.setOrderedStops(stops);
+            detail.setLegs(legs);
+            detail.setTotalDistanceKm(totalDist);
+            detail.setTotalTimeMins(totalTime);
+            detail.setFuelCost(totalFuel);
+            detail.setTollCost(totalToll);
+            detail.setTotalCost(totalFuel.add(totalToll));
+            detail.setScenicScore(BigDecimal.valueOf(rType.equals("scenic") ? 0.92 : 0.65));
+
+            response.getRoutes().put(rType, detail);
+
+            MultiRoutePlanResponse.RouteComparisonDto comp = new MultiRoutePlanResponse.RouteComparisonDto();
+            comp.setRouteType(rType);
+            comp.setTitle(tags[t]);
+            comp.setDistanceKm(totalDist);
+            comp.setTimeMins(totalTime);
+            comp.setFuelCost(totalFuel);
+            comp.setTollCost(totalToll);
+            comp.setTotalCost(totalFuel.add(totalToll));
+            comp.setScenicScore(detail.getScenicScore());
+            comp.setStopsCount(stops.size());
+            comp.setWarningsCount(0);
+            response.getComparison().add(comp);
+        }
+
+        return response;
     }
 }

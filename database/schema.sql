@@ -9,7 +9,10 @@ CREATE DATABASE IF NOT EXISTS routewise_db
 
 USE routewise_db;
 
--- 1. Cities Table
+-- Drop dependent tables first
+DROP TABLE IF EXISTS route_legs;
+DROP TABLE IF EXISTS route_options;
+DROP TABLE IF EXISTS route_segments;
 DROP TABLE IF EXISTS trip_items;
 DROP TABLE IF EXISTS trips;
 DROP TABLE IF EXISTS routes;
@@ -18,6 +21,7 @@ DROP TABLE IF EXISTS hotels;
 DROP TABLE IF EXISTS attractions;
 DROP TABLE IF EXISTS cities;
 
+-- 1. Cities Table
 CREATE TABLE cities (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -28,7 +32,7 @@ CREATE TABLE cities (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 2. Attractions Table
+-- 2. Attractions Table (with scenic_score)
 CREATE TABLE attractions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -40,6 +44,7 @@ CREATE TABLE attractions (
     avg_visit_duration_mins INT NOT NULL DEFAULT 90,
     ticket_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     rating DECIMAL(3, 2) NOT NULL DEFAULT 4.00,
+    scenic_score DECIMAL(3, 2) NOT NULL DEFAULT 0.50, -- 0.0 to 1.0 scenic rating
     latitude DECIMAL(10, 7),
     longitude DECIMAL(10, 7),
     image_url VARCHAR(500),
@@ -48,7 +53,7 @@ CREATE TABLE attractions (
     INDEX idx_attraction_price (ticket_price)
 ) ENGINE=InnoDB;
 
--- 3. Hotels Table
+-- 3. Hotels Table (with coordinates)
 CREATE TABLE hotels (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -59,12 +64,14 @@ CREATE TABLE hotels (
     address VARCHAR(255),
     amenities VARCHAR(255),
     contact_phone VARCHAR(50),
+    latitude DECIMAL(10, 7),
+    longitude DECIMAL(10, 7),
     FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE,
     INDEX idx_hotel_city (city_id),
     INDEX idx_hotel_price (price_per_night)
 ) ENGINE=InnoDB;
 
--- 4. Restaurants Table
+-- 4. Restaurants Table (with coordinates)
 CREATE TABLE restaurants (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -74,12 +81,14 @@ CREATE TABLE restaurants (
     rating DECIMAL(3, 2) NOT NULL DEFAULT 4.00,
     address VARCHAR(255),
     meal_type VARCHAR(50) NOT NULL DEFAULT 'All', -- 'Breakfast', 'Lunch', 'Dinner', 'All'
+    latitude DECIMAL(10, 7),
+    longitude DECIMAL(10, 7),
     FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE,
     INDEX idx_restaurant_city (city_id),
     INDEX idx_restaurant_cost (avg_cost_per_person)
 ) ENGINE=InnoDB;
 
--- 5. Routes Table
+-- 5. Inter-City Routes Table
 CREATE TABLE routes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     origin_city_id BIGINT NOT NULL,
@@ -141,4 +150,73 @@ CREATE TABLE trip_items (
     description TEXT,
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
     INDEX idx_trip_day (trip_id, day_number)
+) ENGINE=InnoDB;
+
+-- 8. Route Segments (Cached Stop-to-Stop Geometry & Metrics)
+CREATE TABLE route_segments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    city_id BIGINT NOT NULL,
+    from_name VARCHAR(150) NOT NULL,
+    to_name VARCHAR(150) NOT NULL,
+    from_lat DECIMAL(10, 7) NOT NULL,
+    from_lng DECIMAL(10, 7) NOT NULL,
+    to_lat DECIMAL(10, 7) NOT NULL,
+    to_lng DECIMAL(10, 7) NOT NULL,
+    distance_km DECIMAL(8, 2) NOT NULL,
+    duration_mins INT NOT NULL,
+    toll_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    scenic_score DECIMAL(3, 2) NOT NULL DEFAULT 0.50,
+    difficulty VARCHAR(50) NOT NULL DEFAULT 'Normal', -- 'Easy', 'Normal', 'Challenging'
+    turns_count INT NOT NULL DEFAULT 4,
+    congestion_penalty DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    road_name VARCHAR(100),
+    geometry_json JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE,
+    INDEX idx_segment_lookup (city_id, from_name, to_name)
+) ENGINE=InnoDB;
+
+-- 9. Route Options Table (Fastest, Shortest, Cheapest, Scenic, Easiest)
+CREATE TABLE route_options (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trip_id BIGINT NOT NULL,
+    route_type VARCHAR(30) NOT NULL, -- 'fastest', 'shortest', 'cheapest', 'scenic', 'easiest'
+    total_distance_km DECIMAL(10, 2) NOT NULL,
+    total_time_mins INT NOT NULL,
+    total_cost DECIMAL(10, 2) NOT NULL,
+    fuel_cost DECIMAL(10, 2) NOT NULL,
+    toll_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    scenic_score DECIMAL(3, 2) NOT NULL,
+    tag VARCHAR(100),
+    summary TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+    INDEX idx_route_trip_type (trip_id, route_type)
+) ENGINE=InnoDB;
+
+-- 10. Route Legs Table (Individual Hops in an Ordered Route)
+CREATE TABLE route_legs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    route_option_id BIGINT NOT NULL,
+    seq INT NOT NULL,
+    from_stop_name VARCHAR(150) NOT NULL,
+    from_stop_type VARCHAR(30) NOT NULL,
+    from_lat DECIMAL(10, 7),
+    from_lng DECIMAL(10, 7),
+    to_stop_name VARCHAR(150) NOT NULL,
+    to_stop_type VARCHAR(30) NOT NULL,
+    to_lat DECIMAL(10, 7),
+    to_lng DECIMAL(10, 7),
+    distance_km DECIMAL(8, 2) NOT NULL,
+    duration_mins INT NOT NULL,
+    toll_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    fuel_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    arrival_time TIME,
+    departure_time TIME,
+    stay_duration_mins INT DEFAULT 60,
+    geometry_json JSON,
+    instructions TEXT,
+    closing_time_warning VARCHAR(255),
+    FOREIGN KEY (route_option_id) REFERENCES route_options(id) ON DELETE CASCADE,
+    INDEX idx_leg_route_seq (route_option_id, seq)
 ) ENGINE=InnoDB;

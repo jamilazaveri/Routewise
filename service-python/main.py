@@ -13,10 +13,12 @@ from models import (
     RestaurantRankingRequest, RankedRestaurant,
     AttractionRankingRequest, RankedAttraction,
     TripOptimizationRequest, TripOptimizationResponse,
-    ReallocateBudgetRequest, ReallocateBudgetResponse, BudgetShares
+    ReallocateBudgetRequest, ReallocateBudgetResponse, BudgetShares,
+    MultiRoutePlanRequest, MultiRoutePlanResponse
 )
 from scoring import rank_hotels, rank_restaurants, rank_attractions
 from optimizer import calculate_transport_costs, optimize_trip
+from route_planner import plan_all_route_types
 
 
 app = FastAPI(
@@ -188,6 +190,20 @@ def reallocate_budget(req: ReallocateBudgetRequest):
         total_budget_max=total_max,
         explanation=explanation
     )
+
+
+@app.post("/plan-routes", response_model=MultiRoutePlanResponse)
+def plan_routes_endpoint(req: MultiRoutePlanRequest):
+    """
+    Computes ordered multi-stop routes for all 5 route styles:
+    Fastest, Shortest, Cheapest, Scenic, and Easiest.
+    Includes time window checks, leg geometry for Leaflet map, and stop details.
+    """
+    try:
+        response = plan_all_route_types(req)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Route planning failed: {str(e)}")
 
 
 if __name__ == "__main__":

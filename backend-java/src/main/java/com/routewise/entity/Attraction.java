@@ -46,6 +46,9 @@ public class Attraction {
     @Column(precision = 10, scale = 7)
     private BigDecimal longitude;
 
+    @Column(name = "scenic_score", precision = 3, scale = 2)
+    private BigDecimal scenicScore = new BigDecimal("0.50");
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
@@ -86,6 +89,9 @@ public class Attraction {
 
     public BigDecimal getLongitude() { return longitude; }
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
+
+    public BigDecimal getScenicScore() { return scenicScore; }
+    public void setScenicScore(BigDecimal scenicScore) { this.scenicScore = scenicScore; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

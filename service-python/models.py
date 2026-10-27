@@ -41,6 +41,8 @@ class HotelCandidate(BaseModel):
     rating: float = 4.0
     amenities: Optional[str] = None
     address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class RestaurantCandidate(BaseModel):
@@ -51,6 +53,8 @@ class RestaurantCandidate(BaseModel):
     rating: float = 4.0
     meal_type: str = "All"
     address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class AttractionCandidate(BaseModel):
@@ -59,10 +63,13 @@ class AttractionCandidate(BaseModel):
     category: str
     ticket_price: float
     rating: float = 4.0
+    scenic_score: float = 0.5
     avg_visit_duration_mins: int = 90
     opening_time: str = "09:00:00"
     closing_time: str = "18:00:00"
     description: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 # -------------------------------------------------------------
@@ -215,3 +222,79 @@ class ReallocateBudgetResponse(BaseModel):
     category_budgets: Dict[str, float]
     total_budget_max: float
     explanation: str
+
+
+# -------------------------------------------------------------
+# 6. Route Planning & Multiple Route Types Models
+# -------------------------------------------------------------
+class StopItem(BaseModel):
+    id: Optional[int] = None
+    name: str
+    stop_type: str = "attraction"  # 'hotel', 'restaurant', 'attraction'
+    latitude: float
+    longitude: float
+    opening_time: str = "06:00:00"
+    closing_time: str = "22:00:00"
+    avg_visit_duration_mins: int = 60
+    ticket_price: float = 0.0
+    meal_type: Optional[str] = None
+    rating: float = 4.0
+    scenic_score: float = 0.50
+    category: Optional[str] = None
+    address: Optional[str] = None
+
+
+class RouteLeg(BaseModel):
+    seq: int
+    from_stop_name: str
+    from_stop_type: str
+    from_lat: float
+    from_lng: float
+    to_stop_name: str
+    to_stop_type: str
+    to_lat: float
+    to_lng: float
+    distance_km: float
+    duration_mins: int
+    toll_cost: float = 0.0
+    fuel_cost: float = 0.0
+    arrival_time: str
+    departure_time: str
+    stay_duration_mins: int = 60
+    geometry: List[List[float]] = []  # [[lat, lng], [lat, lng], ...]
+    instructions: Optional[str] = None
+    closing_time_warning: Optional[str] = None
+
+
+class RouteOption(BaseModel):
+    route_type: str  # 'fastest', 'shortest', 'cheapest', 'scenic', 'easiest'
+    tag: str
+    total_distance_km: float
+    total_time_mins: int
+    total_cost: float
+    fuel_cost: float
+    toll_cost: float
+    scenic_score: float
+    summary: str
+    ordered_stops: List[StopItem]
+    legs: List[RouteLeg]
+    warnings: List[str] = []
+
+
+class MultiRoutePlanRequest(BaseModel):
+    trip_id: Optional[int] = None
+    city_name: str
+    transport_mode: str = "car"  # car, bike, bus, train
+    hotel: Optional[HotelCandidate] = None
+    restaurants: List[RestaurantCandidate] = []
+    attractions: List[AttractionCandidate] = []
+    num_days: int = 1
+    selected_day: Optional[int] = 1
+
+
+class MultiRoutePlanResponse(BaseModel):
+    city_name: str
+    transport_mode: str
+    routes: Dict[str, RouteOption]  # 'fastest', 'shortest', 'cheapest', 'scenic', 'easiest'
+    comparison: List[Dict[str, Any]]
+
