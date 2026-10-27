@@ -40,6 +40,30 @@ public class Attraction {
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal rating = new BigDecimal("4.00");
 
+    @Column(length = 50)
+    private String phone;
+
+    @Column(name = "website_url", length = 500)
+    private String websiteUrl;
+
+    @Column(name = "booking_url", length = 500)
+    private String bookingUrl;
+
+    @Column(name = "maps_url", length = 500)
+    private String mapsUrl;
+
+    @Column(name = "ticket_info", length = 255)
+    private String ticketInfo;
+
+    @Column(name = "best_time_to_visit", length = 100)
+    private String bestTimeToVisit;
+
+    @Column(length = 255)
+    private String rules;
+
+    @Column(length = 255)
+    private String accessibility;
+
     @Column(precision = 10, scale = 7)
     private BigDecimal latitude;
 
@@ -83,6 +107,30 @@ public class Attraction {
 
     public BigDecimal getRating() { return rating; }
     public void setRating(BigDecimal rating) { this.rating = rating; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getWebsiteUrl() { return websiteUrl; }
+    public void setWebsiteUrl(String websiteUrl) { this.websiteUrl = websiteUrl; }
+
+    public String getBookingUrl() { return bookingUrl; }
+    public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
+
+    public String getMapsUrl() { return mapsUrl; }
+    public void setMapsUrl(String mapsUrl) { this.mapsUrl = mapsUrl; }
+
+    public String getTicketInfo() { return ticketInfo; }
+    public void setTicketInfo(String ticketInfo) { this.ticketInfo = ticketInfo; }
+
+    public String getBestTimeToVisit() { return bestTimeToVisit; }
+    public void setBestTimeToVisit(String bestTimeToVisit) { this.bestTimeToVisit = bestTimeToVisit; }
+
+    public String getRules() { return rules; }
+    public void setRules(String rules) { this.rules = rules; }
+
+    public String getAccessibility() { return accessibility; }
+    public void setAccessibility(String accessibility) { this.accessibility = accessibility; }
 
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }

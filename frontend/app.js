@@ -418,7 +418,11 @@ function renderTripPlan(data) {
   // 7. Load Route Styles & Map for this Trip
   if (data.tripId) {
     loadRouteOptionsForTrip(data.tripId);
+    loadTripChecklist(data.tripId);
   }
+
+  // 8. Update WhatsApp and Share Links
+  updateWhatsAppLink(data);
 
   // Reset tab to Itinerary
   switchTab("itineraryTab");
@@ -438,20 +442,59 @@ function renderItineraryTimeline(days) {
         <span class="day-cost-tag">Day Total: ₹${Math.round(day.dayTotalCost || 0).toLocaleString("en-IN")}</span>
       </div>
       <div class="events-list">
-        ${(day.items || []).map(item => `
-          <div class="event-card">
-            <div class="event-time">
-              ${formatTime(item.startTime)} - ${formatTime(item.endTime)}
+        ${(day.items || []).map(item => {
+          const type = (item.itemType || "").toLowerCase();
+          const city = (currentPlan && currentPlan.destinationCity) ? currentPlan.destinationCity : "Chennai";
+          const query = encodeURIComponent(`${item.title} ${city}`);
+          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+          
+          let actionButtons = "";
+          if (type.includes("hotel")) {
+            actionButtons = `
+              <div class="itinerary-actions-row">
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="quick-contact-btn">📍 Maps</a>
+                <button type="button" class="quick-contact-btn" onclick="switchTab('checklistTab')">📋 Book & Check</button>
+              </div>`;
+          } else if (type.includes("meal")) {
+            actionButtons = `
+              <div class="itinerary-actions-row">
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="quick-contact-btn">📍 Maps</a>
+                <span class="time-suggest-tag" style="margin-top:0">🕒 Reserve for ${formatTime(item.startTime)}</span>
+              </div>`;
+          } else if (type.includes("attraction")) {
+            actionButtons = `
+              <div class="itinerary-actions-row">
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="quick-contact-btn">🧭 Directions</a>
+                <button type="button" class="quick-contact-btn" onclick="switchTab('attractionsTab')">ℹ️ Info & Rules</button>
+              </div>`;
+          } else if (type.includes("travel")) {
+            const src = (currentPlan && currentPlan.startCity) ? currentPlan.startCity : "Chennai";
+            const dst = (currentPlan && currentPlan.destinationCity) ? currentPlan.destinationCity : "Pondicherry";
+            const dt = (currentPlan && currentPlan.startDate) ? currentPlan.startDate : "";
+            const rbUrl = `https://www.redbus.in/bus-tickets/${encodeURIComponent(src)}-to-${encodeURIComponent(dst)}?date=${encodeURIComponent(dt)}`;
+            actionButtons = `
+              <div class="itinerary-actions-row">
+                <a href="${rbUrl}" target="_blank" rel="noopener noreferrer" class="quick-contact-btn" style="color:#d84e55">🚌 RedBus Tickets</a>
+                <a href="https://www.irctc.co.in/nget/train-search?src=${encodeURIComponent(src)}&dst=${encodeURIComponent(dst)}&date=${encodeURIComponent(dt)}" target="_blank" rel="noopener noreferrer" class="quick-contact-btn" style="color:#1e3a8a">🚆 IRCTC</a>
+              </div>`;
+          }
+
+          return `
+            <div class="event-card">
+              <div class="event-time">
+                ${formatTime(item.startTime)} - ${formatTime(item.endTime)}
+              </div>
+              <div class="event-info">
+                <h5>${getItemIcon(item.itemType)} ${item.title}</h5>
+                <p>${item.notes || ""}</p>
+                ${actionButtons}
+              </div>
+              <div class="event-cost-pill">
+                ${item.cost > 0 ? `₹${Math.round(item.cost).toLocaleString("en-IN")}` : `<span style="color:#10b981;font-weight:700">Free</span>`}
+              </div>
             </div>
-            <div class="event-info">
-              <h5>${getItemIcon(item.itemType)} ${item.title}</h5>
-              <p>${item.notes || ""}</p>
-            </div>
-            <div class="event-cost-pill">
-              ${item.cost > 0 ? `₹${Math.round(item.cost).toLocaleString("en-IN")}` : `<span style="color:#10b981;font-weight:700">Free</span>`}
-            </div>
-          </div>
-        `).join("")}
+          `;
+        }).join("")}
       </div>
     </div>
   `).join("");
@@ -483,8 +526,22 @@ function renderHotelsTab(selectedHotel, rankedHotels) {
     return;
   }
 
+  const city = (currentPlan && currentPlan.destinationCity) ? currentPlan.destinationCity : "Chennai";
+  const checkin = (currentPlan && currentPlan.startDate) ? currentPlan.startDate : "2026-11-10";
+  const checkout = (currentPlan && currentPlan.endDate) ? currentPlan.endDate : "2026-11-12";
+  const guests = (currentPlan && currentPlan.numTravellers) ? currentPlan.numTravellers : 2;
+
   container.innerHTML = list.map(h => {
     const isSelected = selectedHotel && selectedHotel.id === h.id;
+    const phone = h.phone || h.contactPhone || "+91 44 2825 3434";
+    const encName = encodeURIComponent(h.name);
+    const encCity = encodeURIComponent(city);
+    
+    // Prefilled partner deep links
+    const mmtUrl = `https://www.makemytrip.com/hotels/hotel-listing/?city=${encCity}&hotelName=${encName}&checkin=${encodeURIComponent(checkin)}&checkout=${encodeURIComponent(checkout)}&roomStay=${encodeURIComponent(guests)}`;
+    const bdcUrl = `https://www.booking.com/searchresults.html?ss=${encName}+${encCity}&checkin=${encodeURIComponent(checkin)}&checkout=${encodeURIComponent(checkout)}&group_adults=${encodeURIComponent(guests)}`;
+    const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encName}+${encCity}`;
+
     return `
       <div class="rec-card ${isSelected ? "selected" : ""}">
         <div class="rec-badge-row">
@@ -495,12 +552,22 @@ function renderHotelsTab(selectedHotel, rankedHotels) {
           <h4>${h.name} ${isSelected ? "<span style='color:var(--primary);font-size:0.8rem'>(Selected)</span>" : ""}</h4>
           <p>${h.amenities || "WiFi, AC, Clean Rooms"}</p>
           <p style="margin-top:4px;font-size:0.75rem;color:#64748b;">📍 ${h.address || ""}</p>
+          <p style="margin-top:4px;font-size:0.75rem;color:#047857;font-weight:700;">📞 ${phone}</p>
         </div>
         <div class="rec-footer">
           <div>
             <span class="rec-price-label">Price per night</span>
             <div class="rec-price">₹${Math.round(h.pricePerNight).toLocaleString("en-IN")}</div>
           </div>
+        </div>
+
+        <!-- Book & Contact Action Row -->
+        <div class="partner-actions-row">
+          <a href="${mmtUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn mmt">🏨 MakeMyTrip</a>
+          <a href="${bdcUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn bdc">🛌 Booking.com</a>
+          <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps">📍 Google Maps</a>
+          <a href="tel:${phone}" class="partner-btn call">📞 Call Hotel</a>
+          <button type="button" class="partner-btn copy" onclick="copyPhoneNumber('${phone}', this)">📋 Copy #</button>
         </div>
       </div>
     `;
@@ -514,25 +581,53 @@ function renderRestaurantsTab(restaurants) {
     return;
   }
 
-  container.innerHTML = restaurants.map(r => `
-    <div class="rec-card">
-      <div class="rec-badge-row">
-        <span class="tag-badge">${r.mealType || "All Meals"}</span>
-        <span class="rating-badge">★ ${r.rating}</span>
-      </div>
-      <div class="rec-body">
-        <h4>${r.name}</h4>
-        <p>Cuisine: <strong>${r.cuisine}</strong></p>
-        <p style="margin-top:4px;font-size:0.75rem;color:#64748b;">📍 ${r.address || ""}</p>
-      </div>
-      <div class="rec-footer">
-        <div>
-          <span class="rec-price-label">Avg cost / person</span>
-          <div class="rec-price">₹${Math.round(r.avgCostPerPerson).toLocaleString("en-IN")}</div>
+  const city = (currentPlan && currentPlan.destinationCity) ? currentPlan.destinationCity : "Chennai";
+  const citySlug = city.toLowerCase().trim();
+
+  container.innerHTML = restaurants.map(r => {
+    const phone = r.phone || "+91 44 4123 4567";
+    const encName = encodeURIComponent(r.name);
+    const encCity = encodeURIComponent(city);
+    const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encName}+${encCity}`;
+    const zomatoUrl = `https://www.zomato.com/${encodeURIComponent(citySlug)}/restaurants?q=${encName}`;
+    const swiggyUrl = `https://www.swiggy.com/search?query=${encName}`;
+
+    const mealType = r.mealType || "Lunch";
+    let suggestedTime = "13:00";
+    if (mealType.toLowerCase().includes("break")) suggestedTime = "08:30";
+    else if (mealType.toLowerCase().includes("dinn")) suggestedTime = "20:00";
+
+    return `
+      <div class="rec-card">
+        <div class="rec-badge-row">
+          <span class="tag-badge">${mealType}</span>
+          <span class="rating-badge">★ ${r.rating}</span>
+        </div>
+        <div class="rec-body">
+          <h4>${r.name}</h4>
+          <p>Cuisine: <strong>${r.cuisine}</strong></p>
+          <p style="margin-top:4px;font-size:0.75rem;color:#64748b;">📍 ${r.address || ""}</p>
+          <p style="margin-top:4px;font-size:0.75rem;color:#047857;font-weight:700;">📞 ${phone}</p>
+          <span class="time-suggest-tag">🕒 Suggested: ${mealType} at ${suggestedTime}</span>
+        </div>
+        <div class="rec-footer">
+          <div>
+            <span class="rec-price-label">Avg cost / person</span>
+            <div class="rec-price">₹${Math.round(r.avgCostPerPerson).toLocaleString("en-IN")}</div>
+          </div>
+        </div>
+
+        <!-- Contact & Booking Links -->
+        <div class="partner-actions-row">
+          <a href="tel:${phone}" class="partner-btn call">📞 Call to Reserve</a>
+          <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps">📍 Google Maps</a>
+          <a href="${zomatoUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn zomato">🍽️ Zomato</a>
+          <a href="${swiggyUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn swiggy">🛵 Swiggy</a>
+          <button type="button" class="partner-btn copy" onclick="copyPhoneNumber('${phone}', this)">📋 Copy #</button>
         </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function renderAttractionsTab(attractions) {
@@ -542,27 +637,72 @@ function renderAttractionsTab(attractions) {
     return;
   }
 
-  container.innerHTML = attractions.map(a => `
-    <div class="rec-card">
-      <div class="rec-badge-row">
-        <span class="tag-badge">${a.category || "Sightseeing"}</span>
-        <span class="rating-badge">★ ${a.rating}</span>
-      </div>
-      <div class="rec-body">
-        <h4>${a.name}</h4>
-        <p>${a.description || ""}</p>
-        <p style="margin-top:6px;font-size:0.75rem;color:#475569;">
-          🕒 Timings: ${formatTime(a.openingTime)} - ${formatTime(a.closingTime)} • Duration: ${a.avgVisitDurationMins || 90}m
-        </p>
-      </div>
-      <div class="rec-footer">
-        <div>
-          <span class="rec-price-label">Ticket Entry</span>
-          <div class="rec-price">${a.ticketPrice > 0 ? `₹${Math.round(a.ticketPrice).toLocaleString("en-IN")}` : "<span style='color:#10b981'>Free</span>"}</div>
+  const city = (currentPlan && currentPlan.destinationCity) ? currentPlan.destinationCity : "Chennai";
+
+  container.innerHTML = attractions.map(a => {
+    const encName = encodeURIComponent(a.name);
+    const encCity = encodeURIComponent(city);
+    const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encName}+${encCity}`;
+    const officialUrl = a.bookingUrl || `https://www.google.com/search?q=${encName}+${encCity}+official+tickets`;
+    const phone = a.phone || "+91 44 2464 8820";
+
+    const hasTickets = (a.ticketPrice && a.ticketPrice > 0);
+
+    return `
+      <div class="rec-card">
+        <div class="rec-badge-row">
+          <span class="tag-badge">${a.category || "Sightseeing"}</span>
+          <span class="rating-badge">★ ${a.rating}</span>
+        </div>
+        <div class="rec-body">
+          <h4>${a.name}</h4>
+          <p>${a.description || ""}</p>
+
+          <!-- In-App Full Info Box -->
+          <div class="attr-info-box">
+            <div class="attr-info-row">
+              <span class="attr-info-icon">🕒</span>
+              <span><strong>Opening Hours:</strong> ${formatTime(a.openingTime)} - ${formatTime(a.closingTime)} • <strong>Duration:</strong> ${a.avgVisitDurationMins || 90} mins</span>
+            </div>
+            <div class="attr-info-row">
+              <span class="attr-info-icon">🌅</span>
+              <span><strong>Best Time to Visit:</strong> ${a.bestTimeToVisit || "Early morning or late afternoon for pleasant weather"}</span>
+            </div>
+            <div class="attr-info-row">
+              <span class="attr-info-icon">📜</span>
+              <span><strong>Rules:</strong> ${a.rules || "Valid photo ID required at ticket counter; follow marked heritage paths."}</span>
+            </div>
+            <div class="attr-info-row">
+              <span class="attr-info-icon">♿</span>
+              <span><strong>Accessibility:</strong> ${a.accessibility || "Accessible ramps at entrance and level walkways throughout."}</span>
+            </div>
+            <div class="attr-info-row">
+              <span class="attr-info-icon">📞</span>
+              <span><strong>Contact:</strong> ${phone}</span>
+            </div>
+          </div>
+        </div>
+        <div class="rec-footer">
+          <div>
+            <span class="rec-price-label">Ticket Entry</span>
+            <div class="rec-price">${hasTickets ? `₹${Math.round(a.ticketPrice).toLocaleString("en-IN")}` : "<span style='color:#10b981'>Free Entry</span>"}</div>
+          </div>
+          <div>
+            ${hasTickets 
+              ? `<a href="${officialUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn tickets">🎟️ Book Tickets</a>`
+              : `<span class="ticket-entry-tag">🎟️ Tickets at entry: Free</span>`}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="partner-actions-row">
+          <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps">🧭 Get Directions</a>
+          <a href="tel:${phone}" class="partner-btn call">📞 Call Venue</a>
+          <button type="button" class="partner-btn copy" onclick="copyPhoneNumber('${phone}', this)">📋 Copy #</button>
         </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function switchTab(tabId) {
@@ -1184,4 +1324,266 @@ function showStopDetailsModal(stopName) {
 function closeStopModal() {
   const modal = document.getElementById("stopDetailsModal");
   if (modal) modal.classList.add("hidden");
+}
+
+/* =======================================================
+   PHASE 2: BOOKING CHECKLIST & SHARE ITINERARY FUNCTIONS
+   ======================================================= */
+
+let currentChecklist = [];
+
+async function loadTripChecklist(tripId) {
+  if (!tripId) return;
+  try {
+    const res = await fetch(`${API_BASE}/trips/${tripId}/bookings`);
+    if (res.ok) {
+      currentChecklist = await res.json();
+      renderChecklist(currentChecklist);
+    }
+  } catch (e) {
+    console.error("Failed to load trip bookings checklist:", e);
+  }
+}
+
+function renderChecklist(items) {
+  const container = document.getElementById("checklistItemsList");
+  if (!container) return;
+
+  if (!items || items.length === 0) {
+    container.innerHTML = "<p style='padding:1rem;color:#64748b;'>No stops found for this trip.</p>";
+    return;
+  }
+
+  // Calculate statistics
+  const total = items.length;
+  const booked = items.filter(it => it.status === "Booked").length;
+  const pending = items.filter(it => it.status === "Call pending").length;
+  const unbooked = items.filter(it => it.status === "Not booked").length;
+  const pct = total > 0 ? Math.round((booked / total) * 100) : 0;
+
+  // Update counters
+  document.getElementById("chkTotalStops").textContent = total;
+  document.getElementById("chkBookedCount").textContent = booked;
+  document.getElementById("chkPendingCount").textContent = pending;
+  document.getElementById("chkUnbookedCount").textContent = unbooked;
+
+  const bar = document.getElementById("bookingProgressBar");
+  if (bar) bar.style.width = `${pct}%`;
+  const barText = document.getElementById("bookingProgressText");
+  if (barText) barText.textContent = `${pct}% Booked (${booked} of ${total})`;
+  const tabCounter = document.getElementById("checklistCounter");
+  if (tabCounter) tabCounter.textContent = `${booked}/${total}`;
+
+  container.innerHTML = items.map(item => {
+    const type = (item.stopType || "attraction").toLowerCase();
+    let typeIcon = "🏛️";
+    let typeClass = "attraction";
+    if (type.includes("hotel")) { typeIcon = "🏨"; typeClass = "hotel"; }
+    else if (type.includes("rest") || type.includes("food")) { typeIcon = "🍽️"; typeClass = "restaurant"; }
+    else if (type.includes("trans")) { typeIcon = "🚌"; typeClass = "transport"; }
+
+    let statusClass = "unbooked";
+    if (item.status === "Booked") statusClass = "booked";
+    else if (item.status === "Call pending") statusClass = "pending";
+
+    const bo = item.bookingOptions || {};
+    const phone = bo.phone || "";
+    const links = bo.providerLinks || [];
+
+    // Render provider link buttons
+    const linkButtonsHtml = links.map(l => {
+      let btnClass = "partner-btn";
+      if (l.provider === "makemytrip") btnClass += " mmt";
+      else if (l.provider === "booking.com") btnClass += " bdc";
+      else if (l.provider === "google_maps") btnClass += " gmaps";
+      else if (l.provider === "zomato") btnClass += " zomato";
+      else if (l.provider === "swiggy") btnClass += " swiggy";
+      else if (l.provider === "redbus") btnClass += " redbus";
+      else if (l.provider === "irctc") btnClass += " irctc";
+      else if (l.provider === "official") btnClass += " tickets";
+
+      return `<a href="${l.url}" target="_blank" rel="noopener noreferrer" class="${btnClass}">${l.icon || "🔗"} ${l.label}</a>`;
+    }).join("");
+
+    return `
+      <div class="checklist-card ${statusClass}" id="chkCard-${item.id}">
+        <div class="chk-top-row">
+          <div class="chk-title-group">
+            <span class="chk-type-icon">${typeIcon}</span>
+            <div>
+              <h4>${item.stopName}</h4>
+              <p style="margin:2px 0 0;font-size:0.75rem;color:#64748b;">
+                ${type.toUpperCase()} • ${bo.ticketInfo || bo.openingHours || (phone ? "Phone: " + phone : "Destination Stop")}
+              </p>
+            </div>
+          </div>
+          <div>
+            <select class="chk-status-select status-${statusClass}" id="chkStatus-${item.id}" onchange="onStatusSelectChange(${item.id})">
+              <option value="Not booked" ${item.status === "Not booked" ? "selected" : ""}>🔴 Not booked</option>
+              <option value="Call pending" ${item.status === "Call pending" ? "selected" : ""}>🟡 Call pending</option>
+              <option value="Booked" ${item.status === "Booked" ? "selected" : ""}>🟢 Booked</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chk-inputs-row">
+          <div class="chk-input-wrap">
+            <label>Confirmation / Ref #</label>
+            <input type="text" id="chkRef-${item.id}" placeholder="e.g. MMT-9821 / Confirmed" value="${item.referenceNumber || ""}">
+          </div>
+          <div class="chk-input-wrap">
+            <label>Notes & Instructions</label>
+            <input type="text" id="chkNotes-${item.id}" placeholder="e.g. Table reserved under Rahul, Deluxe room" value="${item.notes || ""}">
+          </div>
+          <button type="button" class="chk-save-btn" onclick="saveChecklistItem(${item.id}, '${item.stopType}', '${encodeURIComponent(item.stopName)}')">💾 Save</button>
+        </div>
+
+        <div class="chk-actions-toolbar">
+          ${phone ? `<a href="tel:${phone}" class="partner-btn call">📞 Call (${phone})</a>` : ""}
+          ${phone ? `<button type="button" class="partner-btn copy" onclick="copyPhoneNumber('${phone}', this)">📋 Copy Phone</button>` : ""}
+          ${linkButtonsHtml}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function onStatusSelectChange(id) {
+  const select = document.getElementById(`chkStatus-${id}`);
+  const card = document.getElementById(`chkCard-${id}`);
+  if (!select || !card) return;
+
+  card.classList.remove("booked", "pending", "unbooked");
+  select.classList.remove("status-booked", "status-pending", "status-unbooked");
+
+  if (select.value === "Booked") {
+    card.classList.add("booked");
+    select.classList.add("status-booked");
+  } else if (select.value === "Call pending") {
+    card.classList.add("pending");
+    select.classList.add("status-pending");
+  } else {
+    card.classList.add("unbooked");
+    select.classList.add("status-unbooked");
+  }
+}
+
+async function saveChecklistItem(bookingId, stopType, encStopName) {
+  if (!currentPlan || !currentPlan.tripId) {
+    showToast("Please generate or select a trip first.");
+    return;
+  }
+
+  const status = document.getElementById(`chkStatus-${bookingId}`).value;
+  const ref = document.getElementById(`chkRef-${bookingId}`).value;
+  const notes = document.getElementById(`chkNotes-${bookingId}`).value;
+  const stopName = decodeURIComponent(encStopName);
+
+  const payload = {
+    status: status,
+    referenceNumber: ref,
+    notes: notes,
+    stopType: stopType,
+    stopName: stopName
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/trips/${currentPlan.tripId}/bookings/${bookingId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      showToast(`✓ Booking for '${stopName}' saved successfully!`);
+      // Refresh checklist
+      loadTripChecklist(currentPlan.tripId);
+    } else {
+      showToast("Failed to save booking. Server error.");
+    }
+  } catch (e) {
+    console.error("Error saving booking item:", e);
+    showToast("Network error saving booking.");
+  }
+}
+
+function copyPhoneNumber(phone, btn) {
+  if (!phone) return;
+  navigator.clipboard.writeText(phone).then(() => {
+    showToast(`✓ Phone number ${phone} copied to clipboard!`);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = "✓ Copied!";
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    }
+  }).catch(() => {
+    showToast(`Phone: ${phone}`);
+  });
+}
+
+function copyTripTextSummary() {
+  if (!currentPlan) {
+    showToast("No active trip to copy.");
+    return;
+  }
+
+  const p = currentPlan;
+  const cb = p.costBreakdown || {};
+
+  let text = `🧭 ROUTEWISE ITINERARY SUMMARY\n`;
+  text += `===============================\n`;
+  text += `Route: ${p.startCity} ➡️ ${p.destinationCity}\n`;
+  text += `Duration: ${p.numDays} Days | Travellers: ${p.numTravellers} | Mode: ${p.transportMode.toUpperCase()}\n`;
+  text += `Estimated Total Cost: ₹${Math.round(cb.total || 0).toLocaleString("en-IN")}\n`;
+  text += `Hotel: ${p.selectedHotel ? p.selectedHotel.name + " (" + p.selectedHotel.tier + ")" : "Standard Hotel"}\n\n`;
+
+  text += `SCHEDULE & STOPS:\n`;
+  (p.itinerary || []).forEach(day => {
+    text += `\n📅 Day ${day.dayNumber}:\n`;
+    (day.items || []).forEach(it => {
+      text += `  • ${it.startTime.substring(0, 5)} - ${it.title} (₹${it.cost})\n`;
+    });
+  });
+
+  text += `\nCOST BREAKDOWN:\n`;
+  text += `• Hotel Stay: ₹${Math.round(cb.accommodation || 0)}\n`;
+  text += `• Food & Dining: ₹${Math.round(cb.food || 0)}\n`;
+  text += `• Transport & Tolls: ₹${Math.round((cb.fuel || 0) + (cb.tolls || 0))}\n`;
+  text += `• Sightseeing: ₹${Math.round(cb.sightseeing || 0)}\n`;
+  text += `• Contingency Reserve: ₹${Math.round(cb.miscellaneous || 0)}\n`;
+  text += `\nPlanned with Routewise Journey Planner.\n`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("✓ Trip summary copied to clipboard! Ready to paste & share.");
+  }).catch(() => {
+    showToast("Unable to copy to clipboard.");
+  });
+}
+
+function updateWhatsAppLink(data) {
+  const linkEl = document.getElementById("whatsappShareLink");
+  if (!linkEl || !data) return;
+
+  const cb = data.costBreakdown || {};
+  const msg = `*Routewise Trip Plan:* ${data.startCity} to ${data.destinationCity} (${data.numDays} Days, ${data.numTravellers} Travellers) for estimated ₹${Math.round(cb.total || 0).toLocaleString("en-IN")}. Hotel: ${data.selectedHotel ? data.selectedHotel.name : "Selected"}. Generated via Routewise!`;
+  linkEl.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+}
+
+function printItineraryView() {
+  window.print();
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const toast = document.getElementById("toastNotification");
+  const msgEl = document.getElementById("toastMessage");
+  if (!toast || !msgEl) return;
+
+  msgEl.textContent = msg;
+  toast.classList.remove("hidden");
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 3500);
 }

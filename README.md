@@ -300,12 +300,119 @@ mvn test
 
 | City | Attractions | Hotels | Restaurants | Key Highlights |
 |---|---|---|---|---|
-| **Chennai** | 8 | 5 | 5 | Marina Beach, Kapaleeshwarar Temple, Fort St. George, Chettinad cuisine |
-| **Bengaluru** | 8 | 5 | 5 | Lalbagh Botanical Garden, Bangalore Palace, Cubbon Park, MTR Dosa |
-| **Pondicherry** | 8 | 5 | 5 | Promenade Beach, Auroville, French Quarter cafes, Sacred Heart Basilica |
-| **Madurai** | 8 | 5 | 5 | Meenakshi Amman Temple, Thirumalai Nayakkar Palace, Murugan Idli |
-| **Coimbatore** | 8 | 5 | 5 | Adiyogi Shiva Bust, Marudhamalai Temple, Siruvani Waterfalls |
+| **Chennai** | 10 | 6 (Budget to Premium) | 8 (Breakfast/Lunch/Dinner) | Marina Beach, Kapaleeshwarar Temple, Fort St. George, Chettinad cuisine, ITC Grand Chola |
+| **Bengaluru** | 10 | 6 (Budget to Premium) | 8 (Breakfast/Lunch/Dinner) | Lalbagh Botanical Garden, Bangalore Palace, Cubbon Park, ISKCON, The Leela Palace, MTR Dosa |
+| **Pondicherry** | 10 | 6 (Budget to Premium) | 8 (Breakfast/Lunch/Dinner) | Promenade Beach, Auroville, French Quarter cafes, Sacred Heart Basilica, Accord Puducherry |
+| **Madurai** | 10 | 6 (Budget to Premium) | 8 (Breakfast/Lunch/Dinner) | Meenakshi Amman Temple, Thirumalai Nayakkar Palace, Samanar Caves, Gateway Pasumalai |
+| **Coimbatore** | 10 | 6 (Budget to Premium) | 8 (Breakfast/Lunch/Dinner) | Adiyogi Shiva Bust, Marudhamalai Temple, Siruvani Waterfalls, Valankulam, Vivanta |
 | **Routes** | 20 bidirectional highway routes (ECR, NH48, GST, NH44, NH544) with realistic toll costs |
+
+---
+
+## Book & Contact Layer 📱
+
+Routewise provides an integrated, non-transactional **Book & Contact layer** that allows travelers to transition seamlessly from planning to booking and execution on official partner sites.
+
+### 1. Hotels
+- **Deep Links**: Direct buttons to **MakeMyTrip**, **Booking.com**, and **Google Maps** prefilled with city, hotel name, check-in date, check-out date, and guest count.
+- **Direct Calling**: Single-click `tel:` link (`📞 Call Hotel`).
+- **Copy Number**: One-click clipboard copy with real-time toast feedback.
+
+### 2. Restaurants
+- **Table Reservation**: Single-click `tel:` link (`📞 Call to Reserve`).
+- **Maps & Menus**: Direct link to **Google Maps** location and reviews.
+- **Delivery & Tables**: Direct links to **Zomato** and **Swiggy** restaurant listings.
+- **Smart Meal Timing**: Suggested reservation time aligned with the itinerary schedule (e.g. Lunch at 13:00, Dinner at 20:00).
+
+### 3. Attractions & Sightseeing
+- **In-App Full Information**: Complete details on opening/closing hours, ticket pricing, average visit duration, best time to visit, visitor rules & dress codes, and wheelchair accessibility.
+- **Ticketing**: Direct "🎟️ Book Tickets" button to official government/partner ticketing portals for paid sights, or "🎟️ Tickets at entry: Free" badge for public landmarks.
+- **Directions**: "🧭 Get Directions" opening Google Maps navigation.
+
+### 4. Transport (Buses & Trains)
+- **RedBus**: Pre-filled search URL with origin city, destination city, and travel date.
+- **IRCTC**: Direct train search portal link with pre-filled station codes and travel date.
+
+### 5. Interactive Booking Checklist
+- Track every stop in the journey in a dedicated checklist tab.
+- **Status Lifecycle**: `Not booked` 🔴, `Call pending` 🟡, `Booked` 🟢.
+- **Confirmation Tracker**: Enter confirmation/PNR reference numbers and custom notes.
+- **Database Persistence**: State is stored and updated in MySQL (`trip_bookings` table).
+- **Progress Gauge**: Real-time progress bar displaying booking completion percentage.
+
+### 6. Share & Export Itinerary
+- **Copy Summary**: Formatted plain-text itinerary summary copied to clipboard for easy sharing.
+- **WhatsApp Share**: One-click deep link to WhatsApp Web/App prefilled with trip details.
+- **Printable View**: Dedicated `@media print` layout that cleanly formats the day-by-day plan and booking checklist without web controls or clutter.
+
+---
+
+## Adding a New Booking Provider Guide 🔌
+
+Routewise utilizes a template-driven booking link engine with security domain whitelisting. Follow these steps to introduce a new booking provider (e.g., *Agoda*, *Cleartrip*, *BookMyShow*):
+
+### Step 1: Whitelist the Provider Domain
+To guard against open-redirect vulnerabilities, all outgoing deep links must belong to an approved domain whitelist.
+
+Open `backend-java/src/main/java/com/routewise/service/BookingLinkBuilderService.java` and add your domain to `allowedDomains`:
+
+```java
+private final Set<String> allowedDomains = new HashSet<>(Arrays.asList(
+        "makemytrip.com",
+        "booking.com",
+        "google.com",
+        "zomato.com",
+        "swiggy.com",
+        "redbus.in",
+        "irctc.co.in",
+        "agoda.com" // <-- Add new provider domain
+));
+```
+
+Alternatively, register dynamically at runtime via:
+```java
+bookingLinkBuilderService.registerAllowedDomain("agoda.com");
+```
+
+### Step 2: Register the URL Template in MySQL
+Add the provider URL template to the `booking_links` table in `database/seed.sql` (or via SQL):
+
+```sql
+INSERT INTO booking_links (stop_type, provider, url_template) VALUES
+('hotel', 'agoda', 'https://www.agoda.com/search?city={city}&hotelName={name}&checkIn={checkin}&checkOut={checkout}&rooms=1&adults={guests}');
+```
+
+**Supported Placeholder Tokens:**
+- `{name}` — Name of the hotel, restaurant, or attraction (URL-encoded).
+- `{city}` — Destination city name (URL-encoded).
+- `{city_slug}` — Lowercase city name (e.g. `chennai`).
+- `{checkin}` / `{checkout}` — Dates in `YYYY-MM-DD` format.
+- `{guests}` — Number of guests/travellers.
+- `{source}` / `{destination}` — Origin and destination cities for transit.
+- `{date}` — Date of journey for transit.
+
+### Step 3: Implement Provider Link in `BookingLinkBuilderService`
+In `BookingLinkBuilderService.java`, add the new provider builder method:
+
+```java
+String agodaUrl = getTemplateOrDefault("hotel", "agoda",
+        "https://www.agoda.com/search?city={city}&hotelName={name}&checkIn={checkin}&checkOut={checkout}&rooms=1&adults={guests}");
+String builtAgoda = buildUrlFromTemplate(agodaUrl, params);
+if (!builtAgoda.isBlank()) {
+    links.add(new BookingOptionDto.ProviderLinkDto("agoda", "Agoda", builtAgoda, "🏨", "Book on Agoda"));
+}
+```
+
+### Step 4: Add UI Button Styling
+In `frontend/style.css`, specify button styling for the new provider:
+
+```css
+.partner-btn.agoda {
+  background: #2b6cb0;
+  color: #ffffff;
+}
+.partner-btn.agoda:hover { background: #2c5282; }
+```
 
 ---
 

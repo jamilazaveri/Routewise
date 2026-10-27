@@ -32,7 +32,7 @@ CREATE TABLE cities (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 2. Attractions Table (with scenic_score)
+-- 2. Attractions Table (with scenic_score and booking info)
 CREATE TABLE attractions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -44,6 +44,14 @@ CREATE TABLE attractions (
     avg_visit_duration_mins INT NOT NULL DEFAULT 90,
     ticket_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     rating DECIMAL(3, 2) NOT NULL DEFAULT 4.00,
+    phone VARCHAR(50),
+    website_url VARCHAR(500),
+    booking_url VARCHAR(500),
+    maps_url VARCHAR(500),
+    ticket_info VARCHAR(255),
+    best_time_to_visit VARCHAR(100),
+    rules VARCHAR(255),
+    accessibility VARCHAR(255),
     scenic_score DECIMAL(3, 2) NOT NULL DEFAULT 0.50, -- 0.0 to 1.0 scenic rating
     latitude DECIMAL(10, 7),
     longitude DECIMAL(10, 7),
@@ -53,7 +61,7 @@ CREATE TABLE attractions (
     INDEX idx_attraction_price (ticket_price)
 ) ENGINE=InnoDB;
 
--- 3. Hotels Table (with coordinates)
+-- 3. Hotels Table (with coordinates and contact/booking info)
 CREATE TABLE hotels (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -64,6 +72,11 @@ CREATE TABLE hotels (
     address VARCHAR(255),
     amenities VARCHAR(255),
     contact_phone VARCHAR(50),
+    phone VARCHAR(50),
+    website_url VARCHAR(500),
+    booking_url VARCHAR(500),
+    maps_url VARCHAR(500),
+    ticket_info VARCHAR(255),
     latitude DECIMAL(10, 7),
     longitude DECIMAL(10, 7),
     FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE,
@@ -71,7 +84,7 @@ CREATE TABLE hotels (
     INDEX idx_hotel_price (price_per_night)
 ) ENGINE=InnoDB;
 
--- 4. Restaurants Table (with coordinates)
+-- 4. Restaurants Table (with coordinates and contact/booking info)
 CREATE TABLE restaurants (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     city_id BIGINT NOT NULL,
@@ -79,6 +92,11 @@ CREATE TABLE restaurants (
     cuisine VARCHAR(100) NOT NULL,
     avg_cost_per_person DECIMAL(10, 2) NOT NULL,
     rating DECIMAL(3, 2) NOT NULL DEFAULT 4.00,
+    phone VARCHAR(50),
+    website_url VARCHAR(500),
+    booking_url VARCHAR(500),
+    maps_url VARCHAR(500),
+    ticket_info VARCHAR(255),
     address VARCHAR(255),
     meal_type VARCHAR(50) NOT NULL DEFAULT 'All', -- 'Breakfast', 'Lunch', 'Dinner', 'All'
     latitude DECIMAL(10, 7),
@@ -221,4 +239,31 @@ CREATE TABLE route_legs (
     closing_time_warning VARCHAR(255),
     FOREIGN KEY (route_option_id) REFERENCES route_options(id) ON DELETE CASCADE,
     INDEX idx_leg_route_seq (route_option_id, seq)
+) ENGINE=InnoDB;
+
+-- 11. Booking Links Templates Table
+CREATE TABLE booking_links (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stop_type VARCHAR(50) NOT NULL, -- 'hotel', 'restaurant', 'attraction', 'transport'
+    stop_id BIGINT,
+    provider VARCHAR(50) NOT NULL, -- 'makemytrip', 'booking.com', 'google_maps', 'zomato', 'swiggy', 'redbus', 'irctc', 'official'
+    url_template VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_booking_link (stop_type, stop_id)
+) ENGINE=InnoDB;
+
+-- 12. Trip Bookings Checklist Table
+CREATE TABLE trip_bookings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    trip_id BIGINT NOT NULL,
+    stop_type VARCHAR(50) NOT NULL, -- 'hotel', 'restaurant', 'attraction', 'transport'
+    stop_id BIGINT,
+    stop_name VARCHAR(150) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'Not booked', -- 'Not booked', 'Booked', 'Call pending'
+    reference_number VARCHAR(100),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+    INDEX idx_trip_booking (trip_id, stop_type, stop_id)
 ) ENGINE=InnoDB;

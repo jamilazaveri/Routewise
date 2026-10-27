@@ -36,6 +36,21 @@ public class Hotel {
     @Column(name = "contact_phone", length = 50)
     private String contactPhone;
 
+    @Column(length = 50)
+    private String phone;
+
+    @Column(name = "website_url", length = 500)
+    private String websiteUrl;
+
+    @Column(name = "booking_url", length = 500)
+    private String bookingUrl;
+
+    @Column(name = "maps_url", length = 500)
+    private String mapsUrl;
+
+    @Column(name = "ticket_info", length = 255)
+    private String ticketInfo;
+
     @Column(precision = 10, scale = 7)
     private BigDecimal latitude;
 
@@ -68,8 +83,29 @@ public class Hotel {
     public String getAmenities() { return amenities; }
     public void setAmenities(String amenities) { this.amenities = amenities; }
 
-    public String getContactPhone() { return contactPhone; }
-    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+    public String getContactPhone() { return contactPhone != null ? contactPhone : phone; }
+    public void setContactPhone(String contactPhone) { 
+        this.contactPhone = contactPhone; 
+        if (this.phone == null) this.phone = contactPhone;
+    }
+
+    public String getPhone() { return phone != null ? phone : contactPhone; }
+    public void setPhone(String phone) { 
+        this.phone = phone; 
+        if (this.contactPhone == null) this.contactPhone = phone;
+    }
+
+    public String getWebsiteUrl() { return websiteUrl; }
+    public void setWebsiteUrl(String websiteUrl) { this.websiteUrl = websiteUrl; }
+
+    public String getBookingUrl() { return bookingUrl; }
+    public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
+
+    public String getMapsUrl() { return mapsUrl; }
+    public void setMapsUrl(String mapsUrl) { this.mapsUrl = mapsUrl; }
+
+    public String getTicketInfo() { return ticketInfo; }
+    public void setTicketInfo(String ticketInfo) { this.ticketInfo = ticketInfo; }
 
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }

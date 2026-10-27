@@ -263,7 +263,19 @@ INSERT INTO route_segments (city_id, from_name, to_name, from_lat, from_lng, to_
 (1, 'Guindy National Park & Snake Park', 'Anjappar Chettinad Restaurant', 13.0067, 80.2206, 13.0580, 80.2510, 7.80, 24, 0.00, 0.68, 'Normal', 5, 4.50, 'Anna Salai Grand Trunk', '[[13.0067, 80.2206], [13.0320, 80.2380], [13.0580, 80.2510]]'),
 (1, 'Anjappar Chettinad Restaurant', 'Guindy National Park & Snake Park', 13.0580, 80.2510, 13.0067, 80.2206, 7.80, 24, 0.00, 0.68, 'Normal', 5, 4.50, 'Anna Salai Grand Trunk', '[[13.0580, 80.2510], [13.0320, 80.2380], [13.0067, 80.2206]]'),
 
--- Anjappar Chettinad -> Mylapore Heritage Inn
-(1, 'Anjappar Chettinad Restaurant', 'Mylapore Heritage Inn', 13.0580, 80.2510, 13.0330, 80.2690, 3.80, 13, 0.00, 0.75, 'Easy', 3, 2.50, 'Dr. Radhakrishnan Salai to Luz Church Rd', '[[13.0580, 80.2510], [13.0450, 80.2600], [13.0330, 80.2690]]'),
-(1, 'Mylapore Heritage Inn', 'Anjappar Chettinad Restaurant', 13.0330, 80.2690, 13.0580, 80.2510, 3.80, 13, 0.00, 0.75, 'Easy', 3, 2.50, 'Dr. Radhakrishnan Salai to Luz Church Rd', '[[13.0330, 80.2690], [13.0450, 80.2600], [13.0580, 80.2510]]')
-ON DUPLICATE KEY UPDATE distance_km=VALUES(distance_km), scenic_score=VALUES(scenic_score);
+-- -------------------------------------------------------
+-- 7. Booking Links Templates
+-- -------------------------------------------------------
+INSERT INTO booking_links (stop_type, stop_id, provider, url_template) VALUES
+('hotel', NULL, 'makemytrip', 'https://www.makemytrip.com/hotels/hotel-listing/?city={city}&hotelName={name}&checkin={checkin}&checkout={checkout}&roomStay={guests}'),
+('hotel', NULL, 'booking.com', 'https://www.booking.com/searchresults.html?ss={name}+{city}&checkin={checkin}&checkout={checkout}&group_adults={guests}'),
+('hotel', NULL, 'google_maps', 'https://www.google.com/maps/search/?api=1&query={name}+{city}'),
+('restaurant', NULL, 'google_maps', 'https://www.google.com/maps/search/?api=1&query={name}+{city}'),
+('restaurant', NULL, 'zomato', 'https://www.zomato.com/{city_slug}/restaurants?q={name}'),
+('restaurant', NULL, 'swiggy', 'https://www.swiggy.com/search?query={name}'),
+('attraction', NULL, 'google_maps', 'https://www.google.com/maps/search/?api=1&query={name}+{city}'),
+('attraction', NULL, 'official', 'https://www.google.com/search?q={name}+{city}+official+tickets'),
+('transport', NULL, 'redbus', 'https://www.redbus.in/bus-tickets/{source}-to-{destination}?date={date}'),
+('transport', NULL, 'irctc', 'https://www.irctc.co.in/nget/train-search?src={source}&dst={destination}&date={date}')
+ON DUPLICATE KEY UPDATE url_template=VALUES(url_template);
+

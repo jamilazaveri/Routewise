@@ -27,6 +27,21 @@ public class Restaurant {
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal rating = new BigDecimal("4.00");
 
+    @Column(length = 50)
+    private String phone;
+
+    @Column(name = "website_url", length = 500)
+    private String websiteUrl;
+
+    @Column(name = "booking_url", length = 500)
+    private String bookingUrl;
+
+    @Column(name = "maps_url", length = 500)
+    private String mapsUrl;
+
+    @Column(name = "ticket_info", length = 255)
+    private String ticketInfo;
+
     @Column(length = 255)
     private String address;
 
@@ -58,6 +73,21 @@ public class Restaurant {
 
     public BigDecimal getRating() { return rating; }
     public void setRating(BigDecimal rating) { this.rating = rating; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getWebsiteUrl() { return websiteUrl; }
+    public void setWebsiteUrl(String websiteUrl) { this.websiteUrl = websiteUrl; }
+
+    public String getBookingUrl() { return bookingUrl; }
+    public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
+
+    public String getMapsUrl() { return mapsUrl; }
+    public void setMapsUrl(String mapsUrl) { this.mapsUrl = mapsUrl; }
+
+    public String getTicketInfo() { return ticketInfo; }
+    public void setTicketInfo(String ticketInfo) { this.ticketInfo = ticketInfo; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

@@ -322,11 +322,25 @@
           </div>
         </div>
 
-        <!-- Tabbed Navigation: Itinerary vs Recommendations vs Saved Trips -->
+        <!-- Share Itinerary & Booking Disclaimer Bar -->
+        <div class="share-and-disclaimer-bar">
+          <div class="disclaimer-badge">
+            <span class="disc-icon">ℹ️</span>
+            <span><strong>Booking Disclaimer:</strong> Prices, seat/room availability, and timings are realistic estimates. Final reservations, tickets, and payments take place directly on partner websites.</span>
+          </div>
+          <div class="share-actions">
+            <button type="button" class="action-pill-btn" onclick="copyTripTextSummary()">📋 Copy Summary</button>
+            <a id="whatsappShareLink" class="action-pill-btn whatsapp-btn" target="_blank" rel="noopener noreferrer" href="#">💬 WhatsApp Share</a>
+            <button type="button" class="action-pill-btn print-btn" onclick="printItineraryView()">🖨️ Printable View</button>
+          </div>
+        </div>
+
+        <!-- Tabbed Navigation: Itinerary vs Routes vs Hotels vs Restaurants vs Attractions vs Checklist vs Saved Trips -->
         <div class="tabs-container">
           <div class="tabs-nav">
             <button type="button" class="tab-btn active" onclick="switchTab('itineraryTab')">📅 Day-by-Day Itinerary</button>
             <button type="button" class="tab-btn" onclick="switchTab('routesTab')">🗺️ Route Styles & Map</button>
+            <button type="button" class="tab-btn" onclick="switchTab('checklistTab')">📋 Booking Checklist <span class="badge-counter" id="checklistCounter">0</span></button>
             <button type="button" class="tab-btn" onclick="switchTab('hotelsTab')">🏨 Hotels</button>
             <button type="button" class="tab-btn" onclick="switchTab('restaurantsTab')">🍽️ Restaurants</button>
             <button type="button" class="tab-btn" onclick="switchTab('attractionsTab')">🏛️ Attractions</button>
@@ -566,6 +580,35 @@
             </div>
           </div>
 
+          <!-- Tab 4.5: Trip Booking Checklist -->
+          <div id="checklistTab" class="tab-pane">
+            <div class="tab-header checklist-header-row">
+              <div>
+                <h3>📋 Trip Booking Checklist</h3>
+                <p>Track booking confirmations, call statuses, reference numbers & notes for every stop in your itinerary.</p>
+              </div>
+              <div class="checklist-summary-chips" id="checklistStats">
+                <span class="chip chip-total">Total: <strong id="chkTotalStops">0</strong></span>
+                <span class="chip chip-booked">Booked: <strong id="chkBookedCount">0</strong></span>
+                <span class="chip chip-pending">Call Pending: <strong id="chkPendingCount">0</strong></span>
+                <span class="chip chip-unbooked">Not Booked: <strong id="chkUnbookedCount">0</strong></span>
+              </div>
+            </div>
+
+            <!-- Booking Progress Bar -->
+            <div class="booking-progress-container">
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="bookingProgressBar" style="width: 0%;"></div>
+              </div>
+              <span class="progress-text" id="bookingProgressText">0% Complete</span>
+            </div>
+
+            <!-- Checklist Items List -->
+            <div id="checklistItemsList" class="checklist-items-grid">
+              <!-- Dynamically populated with status dropdowns, refs, notes, and partner links -->
+            </div>
+          </div>
+
           <!-- Tab 5: Saved Trips History -->
           <div id="historyTab" class="tab-pane">
             <div class="tab-header">
@@ -594,6 +637,12 @@
     </div>
   </footer>
 
-  <script src="app.js?v=2.1"></script>
+  <!-- Floating Toast Notification -->
+  <div id="toastNotification" class="toast-notification hidden">
+    <span class="toast-icon">✓</span>
+    <span id="toastMessage">Success</span>
+  </div>
+
+  <script src="app.js?v=2.2"></script>
 </body>
 </html>
