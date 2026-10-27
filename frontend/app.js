@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initDefaults();
   setupEventListeners();
   checkServicesHealth();
+  // Automatically load the route planning demo on startup so map and styles are immediately visible
+  loadDemoTrip();
 });
 
 function initDefaults() {
@@ -201,6 +203,52 @@ function updateSliderLabels(customBudgets = null) {
     pill.textContent = `Total: ${totalShare}%`;
     pill.style.background = (totalShare === 100) ? "#dcfce7" : "#fee2e2";
     pill.style.color = (totalShare === 100) ? "#166534" : "#991b1b";
+  }
+}
+
+/**
+ * Loads a live sample itinerary and switches directly to the 5 Route Styles & Leaflet Map
+ */
+async function loadDemoTrip() {
+  showLoading(true);
+  try {
+    const payload = {
+      startCity: "Bengaluru",
+      destinationCity: "Chennai",
+      numDays: 2,
+      numTravellers: 2,
+      transportMode: "car",
+      totalBudgetMin: 8000,
+      totalBudgetMax: 18000,
+      shareAccommodation: 35,
+      shareFood: 25,
+      shareTransport: 20,
+      shareSightseeing: 20
+    };
+
+    const res = await fetch(`${API_BASE}/trips/plan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to load demo plan: ${res.status}`);
+    }
+
+    const data = await res.json();
+    currentPlan = data;
+    renderTripPlan(data);
+
+    // Switch directly to the Route Styles & Leaflet Map tab
+    setTimeout(() => {
+      switchTab("routesTab");
+      if (leafletMap) leafletMap.invalidateSize();
+    }, 300);
+  } catch (err) {
+    console.error("loadDemoTrip error:", err);
+  } finally {
+    showLoading(false);
   }
 }
 

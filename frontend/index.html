@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Routewise - Smart Budget-Based Journey Planner</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,6 +25,7 @@
         </div>
       </div>
       <div class="header-status">
+        <button type="button" class="status-badge" style="background:#2563eb;color:#ffffff;border:none;cursor:pointer;font-weight:700;padding:0.4rem 0.8rem;" onclick="loadDemoTrip()">🗺️ Open Live Route Map</button>
         <span class="status-badge" id="backendStatus"><span class="dot"></span> Java :8080</span>
         <span class="status-badge" id="pythonStatus"><span class="dot"></span> Python :8000</span>
         <span class="status-badge price-notice-badge">⚠️ All prices are realistic INR estimates</span>
@@ -210,12 +211,19 @@
       <div id="emptyState" class="empty-state">
         <div class="empty-icon">🗺️</div>
         <h3>Ready to Explore South India?</h3>
-        <p>Select your cities, choose your transport mode, set your budget limits, and click <strong>Generate Itinerary</strong> to get a day-by-day itinerary with automated cost fitting.</p>
+        <p>Select your cities, choose your transport mode, set your budget limits, and click <strong>Generate Itinerary</strong> to get an optimized itinerary with multi-style route planning and Leaflet mapping.</p>
+        
+        <div style="margin: 1.25rem 0;">
+          <button type="button" class="primary-btn" style="max-width:320px;margin:0 auto;box-shadow:0 4px 14px rgba(37,99,235,0.3);" onclick="loadDemoTrip()">
+            <span>🗺️ Load Live Route & Map Demo</span>
+          </button>
+        </div>
+
         <div class="features-list">
-          <div class="feat-item">✓ Greedy budget-fitting algorithm</div>
-          <div class="feat-item">✓ Accurate fuel & toll estimation</div>
-          <div class="feat-item">✓ Scored recommendations (hotels, food, attractions)</div>
-          <div class="feat-item">✓ Feasible alternatives if budget is tight</div>
+          <div class="feat-item">✓ 5 Route Styles: Fastest, Shortest, Cheapest, Scenic, Easiest</div>
+          <div class="feat-item">✓ Leaflet + OpenStreetMap with OSRM Road Geometry</div>
+          <div class="feat-item">✓ Greedy budget-fitting & dynamic reallocation</div>
+          <div class="feat-item">✓ Accurate fuel & highway toll estimation</div>
         </div>
       </div>
 
@@ -583,6 +591,6 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>
