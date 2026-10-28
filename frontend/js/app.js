@@ -1,30 +1,35 @@
 /**
  * Routewise Frontend - Main Application Entrypoint
- * Redesigned for Phase 3A: Premium Travel Aesthetic, Wizard & Animated Loader
+ * Redesigned for Phase 3B: Interactive Results Dashboard, Leaflet Map with CartoDB Positron,
+ * Vertical Drag-Drop Timeline, Image-First Catalog Cards, and Saved Trips.
  */
 
 import { state, applyTheme } from './state.js';
-import { checkServicesHealth, planTripApi } from './api.js';
+import { checkServicesHealth, planTripApi, clearTripHistoryApi } from './api.js';
 import { initWizard, goToStep, setTotalBudgetValue } from './wizard.js';
 import { 
   renderTripPlan, 
   switchTab, 
-  selectRouteType, 
+  selectRouteStyle, 
   saveChecklistItem, 
   copyToClipboard, 
   copyTripTextSummary,
-  showToast 
-} from './components.js';
+  showToast,
+  handleWhatIfBudgetChange,
+  loadSavedTrips
+} from './components.js?v=3.4';
 
 // Expose necessary functions to window for HTML event handlers
 window.goToStep = goToStep;
 window.switchTab = switchTab;
-window.selectRouteType = selectRouteType;
+window.selectRouteStyle = selectRouteStyle;
 window.saveChecklistItem = saveChecklistItem;
 window.copyToClipboard = copyToClipboard;
 window.copyTripTextSummary = copyTripTextSummary;
 window.setTotalBudgetValue = setTotalBudgetValue;
+window.handleWhatIfBudgetChange = handleWhatIfBudgetChange;
 window.loadDemoTrip = loadDemoTrip;
+window.clearAllTripHistory = clearAllTripHistory;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Theme
@@ -61,20 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.addEventListener('click', handleTripGeneration);
   }
 
-  // 4. Setup Tabs Listeners
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      switchTab(btn.dataset.tab);
-    });
-  });
-
-  // 5. Setup Mobile Bottom Navigation
+  // 4. Setup Mobile Bottom Navigation
   setupBottomNav();
 
-  // 6. Check Microservices & Database Health
+  // 5. Check Microservices & Database Health
   checkBackendHealth();
 
-  // 7. Initialize Lucide Icons
+  // 6. Initialize Lucide Icons
   if (window.lucide) window.lucide.createIcons();
 });
 
@@ -165,8 +163,18 @@ export async function loadDemoTrip() {
   try {
     const data = await planTripApi(payload);
     renderTripPlan(data);
+    switchTab('routesTab');
   } catch (e) {
     console.error("Demo trip loading failed:", e);
+  }
+}
+
+async function clearAllTripHistory() {
+  if (!confirm("Are you sure you want to clear all saved trip history?")) return;
+  const ok = await clearTripHistoryApi();
+  if (ok) {
+    showToast("All trip history cleared successfully", "success");
+    loadSavedTrips();
   }
 }
 

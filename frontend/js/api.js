@@ -98,7 +98,7 @@ export async function fetchStopBookingOptionsApi(type, id) {
 }
 
 export async function fetchSavedTripsApi() {
-  const res = await fetch(`${API_BASE}/trips/history`);
+  const res = await fetch(`${API_BASE}/trips`);
   if (!res.ok) return [];
   return await res.json();
 }
@@ -109,6 +109,6 @@ export async function deleteSavedTripApi(tripId) {
 }
 
 export async function clearTripHistoryApi() {
-  const res = await fetch(`${API_BASE}/trips/history/clear`, { method: "DELETE" });
+  const res = await fetch(`${API_BASE}/trips`, { method: "DELETE" });
   return res.ok;
 }

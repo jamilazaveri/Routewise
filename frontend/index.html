@@ -17,13 +17,19 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- SortableJS CDN for Drag-and-Drop Timeline Reordering -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
   <!-- Modular CSS with Cache-Busting -->
-  <link rel="stylesheet" href="css/variables.css?v=3.1">
-  <link rel="stylesheet" href="css/base.css?v=3.1">
-  <link rel="stylesheet" href="css/wizard.css?v=3.1">
-  <link rel="stylesheet" href="css/loader.css?v=3.1">
-  <link rel="stylesheet" href="css/results.css?v=3.1">
-  <link rel="stylesheet" href="css/responsive.css?v=3.1">
+  <link rel="stylesheet" href="css/variables.css?v=3.2">
+  <link rel="stylesheet" href="css/base.css?v=3.2">
+  <link rel="stylesheet" href="css/wizard.css?v=3.2">
+  <link rel="stylesheet" href="css/loader.css?v=3.2">
+  <link rel="stylesheet" href="css/results.css?v=3.2">
+  <link rel="stylesheet" href="css/responsive.css?v=3.2">
 </head>
 <body>
 
@@ -55,6 +61,10 @@
       </div>
 
       <div class="header-actions">
+        <button type="button" class="header-btn" onclick="window.switchTab('savedTripsTab')">
+          <i data-lucide="bookmark"></i>
+          <span>Saved Trips</span>
+        </button>
         <button type="button" class="header-btn primary" onclick="window.loadDemoTrip()">
           <i data-lucide="map"></i>
           <span>Live Route Map</span>
@@ -375,20 +385,14 @@
     <section class="generating-screen" id="generatingScreen">
       <div class="road-stage">
         <svg class="road-svg" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background Road -->
           <path class="road-track" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
           <path class="road-track-inner" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
-          
-          <!-- Moving Dotted Center Line -->
           <path class="road-dotted-line" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
 
-          <!-- Floating Clouds -->
           <path class="cloud-float" d="M 50 40 a 10 10 0 0 1 18 -4 a 14 14 0 0 1 24 2 a 10 10 0 0 1 2 12 l -44 0 z" />
           <path class="cloud-float" d="M 260 30 a 8 8 0 0 1 14 -3 a 12 12 0 0 1 20 2 a 8 8 0 0 1 2 10 l -36 0 z" style="animation-delay:-3s;" />
 
-          <!-- Animated Car travelling along the curve -->
           <g class="animated-car-group">
-            <!-- Mini Car Graphic -->
             <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#7C3AED" />
             <rect x="-6" y="-6" width="14" height="12" rx="2" fill="#EDE9FE" />
             <circle cx="-8" cy="8" r="3" fill="#241434" />
@@ -414,75 +418,59 @@
       </div>
     </section>
 
-    <!-- Results Section (Tabs, Leaflet Map, Checklist) -->
+    <!-- Results Section (Phase 3B Dashboard, Tabs, Leaflet Map, Checklist) -->
     <section class="results-card" id="resultsSection">
 
-      <!-- Feasibility Banner -->
-      <div class="feasibility-banner banner-success" id="feasibilityBanner">
-        <div class="banner-icon-box">
-          <i data-lucide="check-circle" style="color:#10B981"></i>
+      <!-- Summary Header Hero: Animated Progress Ring, Count-up, and What-if Slider -->
+      <div class="results-summary-hero">
+        
+        <!-- Progress Ring -->
+        <div class="summary-ring-box">
+          <svg class="ring-svg" viewBox="0 0 160 160">
+            <circle class="ring-bg" cx="80" cy="80" r="68" />
+            <circle class="ring-progress" id="summaryRingProgress" cx="80" cy="80" r="68" />
+          </svg>
+          <div class="ring-content">
+            <div class="ring-pct" id="summaryRingPct">0%</div>
+            <div class="ring-label">of Budget</div>
+          </div>
         </div>
-        <div class="banner-content">
-          <h4 id="feasibilityTitle">Itinerary Fits Within Budget!</h4>
-          <p id="feasibilityMsg">All estimated costs fit comfortably within your allocated budget.</p>
+
+        <!-- Center Cost and Status -->
+        <div class="summary-details-box">
+          <div class="summary-headline">
+            <span>Trip Budget Balance</span>
+            <span class="summary-badge-status within" id="summaryBadgeStatus">
+              <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Within Budget
+            </span>
+          </div>
+
+          <div class="summary-cost-row">
+            <span class="summary-total-cost" id="summaryTotalCost">₹0</span>
+            <span class="summary-budget-target" id="summaryBudgetTarget">Budget: ₹18,000</span>
+          </div>
+
+          <div class="summary-left-pill positive" id="summaryLeftAmount">
+            <i data-lucide="trending-up" style="width:16px;height:16px;"></i> ₹0 left to spend
+          </div>
         </div>
+
+        <!-- What-If Live Budget Slider -->
+        <div class="summary-whatif-box">
+          <div class="whatif-header">
+            <span>What-If Budget Slider</span>
+            <span class="tag" id="whatifBudgetDisplay">₹18,000</span>
+          </div>
+          <input type="range" class="whatif-slider" id="whatifBudgetSlider" min="9000" max="36000" step="500" value="18000" oninput="window.handleWhatIfBudgetChange(this.value)" />
+          <p class="whatif-caption">Drag slider to live-simulate budget elasticity and recommendations</p>
+        </div>
+
       </div>
 
-      <!-- Cheapest Alternative Card -->
-      <div class="cheapest-alt-card hidden" id="cheapestAltCard">
-        <div>
-          <h4 style="font-size:1.05rem;font-weight:700;color:#F43F5E;">Cheapest Feasible Alternative Available</h4>
-          <p style="font-size:0.85rem;color:var(--text-secondary);margin-top:2px;" id="altSummary"></p>
-        </div>
-        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:#F43F5E;" id="altPrice"></div>
-      </div>
-
-      <!-- Cost Breakdown Cards -->
-      <div class="cost-breakdown-grid">
-        <div class="cost-card total">
-          <div class="cost-card-header">
-            <span>Total Cost</span>
-            <i data-lucide="wallet" style="color:#7C3AED;width:18px;height:18px;"></i>
-          </div>
-          <div class="cost-card-amount" id="costTotalVal">₹0</div>
-          <div class="cost-card-subtext" id="costTotalSub">Budget: ₹0</div>
-        </div>
-
-        <div class="cost-card stay">
-          <div class="cost-card-header">
-            <span>Accommodation</span>
-            <i data-lucide="hotel" style="color:#F43F5E;width:18px;height:18px;"></i>
-          </div>
-          <div class="cost-card-amount" id="costStayVal">₹0</div>
-          <div class="cost-card-subtext">Selected Hotel</div>
-        </div>
-
-        <div class="cost-card food">
-          <div class="cost-card-header">
-            <span>Food & Dining</span>
-            <i data-lucide="utensils" style="color:#10B981;width:18px;height:18px;"></i>
-          </div>
-          <div class="cost-card-amount" id="costFoodVal">₹0</div>
-          <div class="cost-card-subtext">All meals included</div>
-        </div>
-
-        <div class="cost-card trans">
-          <div class="cost-card-header">
-            <span>Fuel & Tolls</span>
-            <i data-lucide="car" style="color:#0284C7;width:18px;height:18px;"></i>
-          </div>
-          <div class="cost-card-amount" id="costTransVal">₹0</div>
-          <div class="cost-card-subtext" id="costTransSub">Fuel + Tolls</div>
-        </div>
-
-        <div class="cost-card sight">
-          <div class="cost-card-header">
-            <span>Sightseeing</span>
-            <i data-lucide="landmark" style="color:#7C3AED;width:18px;height:18px;"></i>
-          </div>
-          <div class="cost-card-amount" id="costSightVal">₹0</div>
-          <div class="cost-card-subtext">Attractions tickets</div>
-        </div>
+      <!-- Cost Breakdown Stacked Bar -->
+      <div class="cost-breakdown-interactive">
+        <div class="cost-stacked-bar-track" id="stackedCostBar"></div>
+        <div class="cost-categories-legend" id="costCategoriesLegend"></div>
       </div>
 
       <!-- Share & Export Bar with Partner Booking Disclaimer -->
@@ -505,43 +493,131 @@
         </div>
       </div>
 
-      <!-- Tabs Navigation Bar -->
-      <div class="results-tabs-nav">
-        <button type="button" class="tab-btn active" data-tab="itineraryTab">
-          <i data-lucide="calendar"></i> Day-by-Day Itinerary
-        </button>
-        <button type="button" class="tab-btn" data-tab="routesTab">
-          <i data-lucide="map"></i> Route Styles & Leaflet Map
-        </button>
-        <button type="button" class="tab-btn" data-tab="checklistTab">
-          <i data-lucide="list-checks"></i> Booking Checklist
-          <span class="tab-counter-badge" id="checklistTabBadge">0/0</span>
-        </button>
-        <button type="button" class="tab-btn" data-tab="hotelsTab">
-          <i data-lucide="hotel"></i> Hotels
-        </button>
-        <button type="button" class="tab-btn" data-tab="restaurantsTab">
-          <i data-lucide="utensils"></i> Restaurants
-        </button>
-        <button type="button" class="tab-btn" data-tab="attractionsTab">
-          <i data-lucide="landmark"></i> Attractions
-        </button>
-      </div>
-
-      <!-- TAB 1: ITINERARY -->
-      <div class="tab-pane active" id="itineraryTab">
-        <div id="itineraryTimeline"></div>
-      </div>
-
-      <!-- TAB 2: ROUTES & LEAFLET MAP -->
-      <div class="tab-pane" id="routesTab">
-        <div class="route-styles-grid" id="routeStylesContainer"></div>
-        <div class="map-card-wrapper">
-          <div id="leafletMapContainer"></div>
+      <!-- Tabs with Sliding Pill Indicator -->
+      <div class="sliding-tabs-nav-wrap">
+        <div class="sliding-tabs-nav" id="slidingTabsNav">
+          <div class="tab-sliding-indicator" id="tabSlidingIndicator"></div>
+          <button type="button" class="sliding-tab-btn active" data-tab="itineraryTab" onclick="window.switchTab('itineraryTab')">
+            <i data-lucide="calendar"></i> Itinerary
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="routesTab" onclick="window.switchTab('routesTab')">
+            <i data-lucide="map"></i> Routes & Map
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="stayTab" onclick="window.switchTab('stayTab')">
+            <i data-lucide="hotel"></i> Stay
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="foodTab" onclick="window.switchTab('foodTab')">
+            <i data-lucide="utensils"></i> Food
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="placesTab" onclick="window.switchTab('placesTab')">
+            <i data-lucide="landmark"></i> Places
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="checklistTab" onclick="window.switchTab('checklistTab')">
+            <i data-lucide="list-checks"></i> Bookings
+            <span class="tab-counter-badge" id="checklistTabBadge" style="margin-left:0.3rem;">0/0</span>
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="savedTripsTab" onclick="window.switchTab('savedTripsTab')">
+            <i data-lucide="bookmark"></i> Saved Trips
+          </button>
         </div>
       </div>
 
-      <!-- TAB 3: BOOKING CHECKLIST -->
+      <!-- TAB 1: VERTICAL TIMELINE WITH DRAG-AND-DROP & CLOSING WARNINGS -->
+      <div class="tab-pane active" id="itineraryTab">
+        <div class="timeline-section-wrap">
+          <div class="timeline-day-tabs-bar" id="timelineDayPills"></div>
+          <div id="timelineDaysContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: ROUTES & LEAFLET MAP WITH 5 STYLES & COMPARISON -->
+      <div class="tab-pane" id="routesTab">
+        <div class="routes-map-container">
+          <div class="routes-cards-panel" id="routeStyleCardsList"></div>
+          <div class="map-view-card">
+            <div id="leafletMapContainer"></div>
+          </div>
+        </div>
+
+        <div class="comparison-table-wrapper">
+          <h4 style="font-size:1.1rem;font-weight:700;margin-bottom:0.85rem;">Route Styles Comparison Table</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Style</th>
+                <th>Distance</th>
+                <th>Travel Time</th>
+                <th>Estimated Cost</th>
+                <th>Scenic Score</th>
+              </tr>
+            </thead>
+            <tbody id="routeComparisonTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: STAY (HOTELS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="stayTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Tiers</button>
+            <button type="button" class="filter-pill">Budget</button>
+            <button type="button" class="filter-pill">Mid-Range</button>
+            <button type="button" class="filter-pill">Boutique & Luxury</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Recommended (Rating & Value)</option>
+              <option>Price: Low to High</option>
+              <option>Rating: High to Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="stayCardsGrid"></div>
+      </div>
+
+      <!-- TAB 4: FOOD (RESTAURANTS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="foodTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Cuisines</button>
+            <button type="button" class="filter-pill">South Indian Thali</button>
+            <button type="button" class="filter-pill">Coastal & Seafood</button>
+            <button type="button" class="filter-pill">Bakery & Cafes</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Rating: High to Low</option>
+              <option>Price for Two</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="foodCardsGrid"></div>
+      </div>
+
+      <!-- TAB 5: PLACES (ATTRACTIONS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="placesTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Attractions</button>
+            <button type="button" class="filter-pill">Beaches</button>
+            <button type="button" class="filter-pill">Temples & Heritage</button>
+            <button type="button" class="filter-pill">Museums</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Popularity</option>
+              <option>Entry Fee</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="placesCardsGrid"></div>
+      </div>
+
+      <!-- TAB 6: BOOKINGS CHECKLIST -->
       <div class="tab-pane" id="checklistTab">
         <div class="checklist-stats-bar">
           <span class="chk-stat-chip">Total Stops: <strong id="chkTotalCount">0</strong></span>
@@ -555,19 +631,15 @@
         <div class="checklist-cards-container" id="checklistItemsList"></div>
       </div>
 
-      <!-- TAB 4: HOTELS -->
-      <div class="tab-pane" id="hotelsTab">
-        <div id="hotelsContainer" class="checklist-cards-container"></div>
-      </div>
-
-      <!-- TAB 5: RESTAURANTS -->
-      <div class="tab-pane" id="restaurantsTab">
-        <div id="restaurantsContainer" class="checklist-cards-container"></div>
-      </div>
-
-      <!-- TAB 6: ATTRACTIONS -->
-      <div class="tab-pane" id="attractionsTab">
-        <div id="attractionsContainer" class="checklist-cards-container"></div>
+      <!-- TAB 7: SAVED TRIPS VISUAL CARDS -->
+      <div class="tab-pane" id="savedTripsTab">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h3 style="font-size:1.35rem;font-weight:700;">Your Journey Itineraries</h3>
+          <button type="button" class="header-btn" onclick="window.clearAllTripHistory()">
+            <i data-lucide="trash-2" style="color:#F43F5E;"></i> Clear All History
+          </button>
+        </div>
+        <div class="saved-trips-grid" id="savedTripsGrid"></div>
       </div>
 
     </section>
@@ -602,6 +674,6 @@
   <div class="app-toast" id="appToast">Notification</div>
 
   <!-- Main ES Module Script with Cache-Busting -->
-  <script type="module" src="js/app.js?v=3.1"></script>
+  <script type="module" src="js/app.js?v=3.4"></script>
 </body>
 </html>
