@@ -1,0 +1,176 @@
+/* ==========================================================================
+   ROUTEWISE - PLAYFUL ANIMATED ROAD LOADER ("GENERATING" SCREEN)
+   ========================================================================== */
+
+.generating-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: 840px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.generating-screen.active {
+  display: flex;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Road Illustration Stage */
+.road-stage {
+  position: relative;
+  width: 360px;
+  height: 180px;
+  margin: 0 auto 1.5rem;
+}
+
+.road-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.road-track {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.road-track-inner {
+  fill: none;
+  stroke: var(--surface-input);
+  stroke-width: 24;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.road-dotted-line {
+  fill: none;
+  stroke: #7C3AED;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 8 14;
+  animation: roadDashMove 1.2s linear infinite;
+}
+
+@keyframes roadDashMove {
+  to {
+    stroke-dashoffset: -44;
+  }
+}
+
+.animated-car-group {
+  filter: drop-shadow(0 6px 12px rgba(45, 27, 78, 0.3));
+}
+
+/* Floating Scenery Elements */
+.cloud-float {
+  fill: #FFFFFF;
+  opacity: 0.8;
+  animation: cloudDrift 6s ease-in-out infinite alternate;
+}
+
+[data-theme="dark"] .cloud-float {
+  fill: #C4B5FD;
+  opacity: 0.3;
+}
+
+@keyframes cloudDrift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+/* Status Text Container */
+.generating-title {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #432C7A 0%, #7C3AED 60%, #F43F5E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="dark"] .generating-title {
+  background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 60%, #FDA4AF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.generating-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--pastel-lavender);
+  color: #3B1E54;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 1.75rem;
+  border: 1px solid var(--pastel-lavender-strong);
+  box-shadow: var(--shadow-sm);
+  min-width: 320px;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+[data-theme="dark"] .generating-status-pill {
+  background: rgba(124, 58, 237, 0.2);
+  color: #DDD6FE;
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.status-spinner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7C3AED;
+  animation: pulseDot 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 1; }
+}
+
+/* Linear Progress Bar */
+.generating-progress-bar-wrap {
+  width: 280px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border-subtle);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.generating-progress-fill {
+  height: 100%;
+  width: 30%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #7C3AED 0%, #F43F5E 100%);
+  animation: indeterminateProgress 2s ease-in-out infinite;
+}
+
+@keyframes indeterminateProgress {
+  0% { width: 10%; transform: translateX(-10%); }
+  50% { width: 60%; transform: translateX(50%); }
+  100% { width: 90%; transform: translateX(110%); }
+}

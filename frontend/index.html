@@ -1,648 +1,607 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Routewise - Smart Budget-Based Journey Planner</title>
-  <link rel="stylesheet" href="style.css?v=2.1">
+  
+  <!-- Google Fonts: Outfit (Display) & Inter (Body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons (Unified Modern Icon Set via CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <!-- Leaflet Map CSS & JS (Free, OpenStreetMap, no API key needed) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Modular CSS with Cache-Busting -->
+  <link rel="stylesheet" href="css/variables.css?v=3.1">
+  <link rel="stylesheet" href="css/base.css?v=3.1">
+  <link rel="stylesheet" href="css/wizard.css?v=3.1">
+  <link rel="stylesheet" href="css/loader.css?v=3.1">
+  <link rel="stylesheet" href="css/results.css?v=3.1">
+  <link rel="stylesheet" href="css/responsive.css?v=3.1">
 </head>
 <body>
+
+  <!-- Background Animated Dreamy Pastel Orbs -->
+  <div class="bg-canvas-container">
+    <div class="gradient-orb orb-blush"></div>
+    <div class="gradient-orb orb-lavender"></div>
+    <div class="gradient-orb orb-sky"></div>
+    <div class="gradient-orb orb-mint"></div>
+  </div>
+
+  <!-- Decorative Animated Route Line SVG -->
+  <svg class="bg-route-svg" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="animated-route-path" d="M-50,250 C300,100 450,450 750,280 C1050,110 1200,600 1500,400" stroke="#7C3AED" stroke-width="2.5" />
+    <path class="animated-route-path" d="M-80,650 C250,500 500,750 900,550 C1250,380 1350,800 1550,680" stroke="#F43F5E" stroke-width="2" style="animation-duration: 32s;" />
+  </svg>
 
   <!-- Top Navigation Header -->
   <header class="app-header">
     <div class="header-container">
-      <div class="brand">
-        <div class="brand-icon">🧭</div>
+      <div class="brand" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <div class="brand-icon-wrap">
+          <i data-lucide="compass" style="width:26px;height:26px;"></i>
+        </div>
         <div class="brand-text">
           <h1>Route<span>wise</span></h1>
           <p class="tagline">Smart Budget-Based Journey Planner</p>
         </div>
       </div>
-      <div class="header-status">
-        <button type="button" class="status-badge" style="background:#2563eb;color:#ffffff;border:none;cursor:pointer;font-weight:700;padding:0.4rem 0.8rem;" onclick="loadDemoTrip()">🗺️ Open Live Route Map</button>
-        <span class="status-badge" id="backendStatus"><span class="dot"></span> Java :8080</span>
-        <span class="status-badge" id="pythonStatus"><span class="dot"></span> Python :8000</span>
-        <span class="status-badge price-notice-badge">⚠️ All prices are realistic INR estimates</span>
+
+      <div class="header-actions">
+        <button type="button" class="header-btn primary" onclick="window.loadDemoTrip()">
+          <i data-lucide="map"></i>
+          <span>Live Route Map</span>
+        </button>
+        <span class="status-pill" id="backendStatusBadge">
+          <span class="status-dot"></span> Java :8080
+        </span>
+        <span class="status-pill" id="pythonStatusBadge">
+          <span class="status-dot"></span> Python :8000
+        </span>
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+          <i data-lucide="moon"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <main class="main-container">
-    
-    <!-- Left Column: Trip Planner Form -->
-    <section class="planner-card">
-      <div class="card-header">
-        <h2>Plan Your Journey</h2>
-        <p class="sub-text">Enter travel details to generate an itinerary with a greedy budget-fitted cost breakdown.</p>
+  <!-- Main Container -->
+  <main class="app-main">
+
+    <!-- Landing Screen Hero Header -->
+    <section class="hero-section">
+      <div class="hero-pill">
+        <i data-lucide="sparkles" style="width:16px;height:16px;color:#7C3AED;"></i>
+        <span>South India Intelligent Travel Engine</span>
       </div>
-
-      <form id="tripForm">
-        <!-- Start & Destination Cities -->
-        <div class="form-row locations-row">
-          <div class="form-group">
-            <label for="startCity">Start Location</label>
-            <select id="startCity" name="startCity" required>
-              <option value="Chennai" selected>Chennai, TN</option>
-              <option value="Bengaluru">Bengaluru, KA</option>
-              <option value="Pondicherry">Pondicherry, PY</option>
-              <option value="Madurai">Madurai, TN</option>
-              <option value="Coimbatore">Coimbatore, TN</option>
-            </select>
-          </div>
-
-          <button type="button" id="swapCitiesBtn" class="swap-btn" title="Swap origin and destination">⇄</button>
-
-          <div class="form-group">
-            <label for="destinationCity">Destination City</label>
-            <select id="destinationCity" name="destinationCity" required>
-              <option value="Pondicherry" selected>Pondicherry, PY</option>
-              <option value="Chennai">Chennai, TN</option>
-              <option value="Bengaluru">Bengaluru, KA</option>
-              <option value="Madurai">Madurai, TN</option>
-              <option value="Coimbatore">Coimbatore, TN</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Travel Duration & Travellers -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="startDate">Start Date</label>
-            <input type="date" id="startDate" name="startDate">
-          </div>
-          <div class="form-group">
-            <label for="numDays">Duration (Days)</label>
-            <div class="number-input-wrapper">
-              <button type="button" class="stepper-btn" onclick="stepNumber('numDays', -1)">-</button>
-              <input type="number" id="numDays" name="numDays" min="1" max="10" value="2" required>
-              <button type="button" class="stepper-btn" onclick="stepNumber('numDays', 1)">+</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="numTravellers">Travellers</label>
-            <div class="number-input-wrapper">
-              <button type="button" class="stepper-btn" onclick="stepNumber('numTravellers', -1)">-</button>
-              <input type="number" id="numTravellers" name="numTravellers" min="1" max="20" value="2" required>
-              <button type="button" class="stepper-btn" onclick="stepNumber('numTravellers', 1)">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Transport Mode Selector -->
-        <div class="form-group">
-          <label>Transport Mode</label>
-          <div class="transport-grid">
-            <label class="transport-option">
-              <input type="radio" name="transportMode" value="car" checked>
-              <div class="option-content">
-                <span class="icon">🚗</span>
-                <span class="title">Car</span>
-                <span class="detail">15 km/L • Tolls</span>
-              </div>
-            </label>
-            <label class="transport-option">
-              <input type="radio" name="transportMode" value="bike">
-              <div class="option-content">
-                <span class="icon">🏍️</span>
-                <span class="title">Bike</span>
-                <span class="detail">40 km/L • No Toll</span>
-              </div>
-            </label>
-            <label class="transport-option">
-              <input type="radio" name="transportMode" value="bus">
-              <div class="option-content">
-                <span class="icon">🚌</span>
-                <span class="title">Bus</span>
-                <span class="detail">₹1.8/km/person</span>
-              </div>
-            </label>
-            <label class="transport-option">
-              <input type="radio" name="transportMode" value="train">
-              <div class="option-content">
-                <span class="icon">🚆</span>
-                <span class="title">Train</span>
-                <span class="detail">₹1.25/km/person</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Total Budget Section -->
-        <div class="budget-section">
-          <label for="totalBudgetMax">Total Budget (INR)</label>
-          <div class="budget-input-container">
-            <span class="currency-symbol">₹</span>
-            <input type="number" id="totalBudgetMax" name="totalBudgetMax" min="1000" step="500" value="18000" required>
-          </div>
-          <div class="budget-presets">
-            <span>Quick:</span>
-            <button type="button" class="chip-btn" onclick="setBudget(8000)">₹8K (Backpacker)</button>
-            <button type="button" class="chip-btn" onclick="setBudget(18000)">₹18K (Balanced)</button>
-            <button type="button" class="chip-btn" onclick="setBudget(30000)">₹30K (Comfort)</button>
-            <button type="button" class="chip-btn" onclick="setBudget(45000)">₹45K (Premium)</button>
-          </div>
-        </div>
-
-        <!-- Category Budget Re-allocation Sliders -->
-        <div class="sliders-section">
-          <div class="sliders-header">
-            <h3>Budget Allocation Shares</h3>
-            <span class="total-shares-pill" id="totalSharesPill">Total: 100%</span>
-          </div>
-          <p class="slider-hint">Drag any slider to dynamically re-allocate budget across categories:</p>
-
-          <!-- Accommodation Slider -->
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span class="slider-name">🏨 Accommodation</span>
-              <span class="slider-val" id="shareAccVal">35% (₹6,300)</span>
-            </div>
-            <input type="range" id="sliderAccommodation" min="10" max="60" value="35" class="cat-slider" data-category="accommodation">
-          </div>
-
-          <!-- Food Slider -->
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span class="slider-name">🍽️ Food & Dining</span>
-              <span class="slider-val" id="shareFoodVal">25% (₹4,500)</span>
-            </div>
-            <input type="range" id="sliderFood" min="10" max="60" value="25" class="cat-slider" data-category="food">
-          </div>
-
-          <!-- Transport Slider -->
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span class="slider-name">⛽ Fuel & Transport</span>
-              <span class="slider-val" id="shareTransVal">20% (₹3,600)</span>
-            </div>
-            <input type="range" id="sliderTransport" min="10" max="50" value="20" class="cat-slider" data-category="transport">
-          </div>
-
-          <!-- Sightseeing Slider -->
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span class="slider-name">🎟️ Sightseeing & Tickets</span>
-              <span class="slider-val" id="shareSightVal">20% (₹3,600)</span>
-            </div>
-            <input type="range" id="sliderSightseeing" min="5" max="50" value="20" class="cat-slider" data-category="sightseeing">
-          </div>
-
-          <div id="reallocationMsg" class="reallocation-note"></div>
-        </div>
-
-        <button type="submit" id="planBtn" class="primary-btn">
-          <span class="btn-text">Generate Itinerary & Cost Plan</span>
-          <span class="btn-icon">⚡</span>
-        </button>
-      </form>
+      <h2 class="hero-title">Where to <span class="gradient-text">next?</span></h2>
+      <p class="hero-subtitle">Plan a custom road trip tailored to your budget with greedy optimization, boutique stays, regional cuisine, and 5 route styles.</p>
     </section>
 
-    <!-- Right Column: Results & Interactive Itinerary -->
-    <section class="results-card" id="resultsSection">
+    <!-- Planner Wizard Card -->
+    <section class="wizard-card" id="wizardCard">
       
-      <!-- Welcome / Placeholder State -->
-      <div id="emptyState" class="empty-state">
-        <div class="empty-icon">🗺️</div>
-        <h3>Ready to Explore South India?</h3>
-        <p>Select your cities, choose your transport mode, set your budget limits, and click <strong>Generate Itinerary</strong> to get an optimized itinerary with multi-style route planning and Leaflet mapping.</p>
-        
-        <div style="margin: 1.25rem 0;">
-          <button type="button" class="primary-btn" style="max-width:320px;margin:0 auto;box-shadow:0 4px 14px rgba(37,99,235,0.3);" onclick="loadDemoTrip()">
-            <span>🗺️ Load Live Route & Map Demo</span>
+      <!-- Stepper Progress Bar & Steps -->
+      <div class="wizard-stepper">
+        <div class="stepper-progress-track">
+          <div class="stepper-progress-bar" id="stepperProgressBar"></div>
+        </div>
+        <ol class="stepper-steps">
+          <li class="step-item active" data-step="1" onclick="window.goToStep(1)">
+            <div class="step-circle"><i data-lucide="map-pin" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">1. Where</span>
+          </li>
+          <li class="step-item" data-step="2" onclick="window.goToStep(2)">
+            <div class="step-circle"><i data-lucide="calendar" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">2. When & Who</span>
+          </li>
+          <li class="step-item" data-step="3" onclick="window.goToStep(3)">
+            <div class="step-circle"><i data-lucide="compass" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">3. How</span>
+          </li>
+          <li class="step-item" data-step="4" onclick="window.goToStep(4)">
+            <div class="step-circle"><i data-lucide="wallet" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">4. Budget</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Wizard Step Viewports -->
+      <div class="wizard-panels-viewport">
+
+        <!-- STEP 1: WHERE -->
+        <div class="wizard-panel active" data-step="1">
+          <div class="panel-header">
+            <h3>Choose your corridor</h3>
+            <p>Pick your starting point and the destination you want to explore.</p>
+          </div>
+
+          <div class="location-inputs-grid">
+            <!-- From City -->
+            <div class="input-field-group">
+              <label for="startCityInput"><i data-lucide="navigation" style="width:14px;height:14px;"></i> Starting City</label>
+              <div class="modern-input-wrap">
+                <i data-lucide="map-pin" class="input-icon"></i>
+                <input type="text" id="startCityInput" class="modern-input" placeholder="e.g. Chennai" autocomplete="off" />
+              </div>
+              <div class="autocomplete-dropdown" id="startCityDropdown"></div>
+            </div>
+
+            <!-- Swap Button -->
+            <button type="button" class="city-swap-btn" id="citySwapBtn" title="Swap Origin and Destination">
+              <i data-lucide="arrow-left-right" style="width:18px;height:18px;"></i>
+            </button>
+
+            <!-- To City -->
+            <div class="input-field-group">
+              <label for="destinationCityInput"><i data-lucide="map-pin" style="width:14px;height:14px;"></i> Destination City</label>
+              <div class="modern-input-wrap">
+                <i data-lucide="landmark" class="input-icon"></i>
+                <input type="text" id="destinationCityInput" class="modern-input" placeholder="e.g. Pondicherry" autocomplete="off" />
+              </div>
+              <div class="autocomplete-dropdown" id="destinationCityDropdown"></div>
+            </div>
+          </div>
+
+          <!-- Quick City Chips -->
+          <div class="quick-cities-row">
+            <span class="quick-cities-label">Popular Hubs:</span>
+            <button type="button" class="city-chip" data-city="Chennai">Chennai</button>
+            <button type="button" class="city-chip" data-city="Bengaluru">Bengaluru</button>
+            <button type="button" class="city-chip" data-city="Pondicherry">Pondicherry</button>
+            <button type="button" class="city-chip" data-city="Madurai">Madurai</button>
+            <button type="button" class="city-chip" data-city="Coimbatore">Coimbatore</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: WHEN & WHO -->
+        <div class="wizard-panel" data-step="2">
+          <div class="panel-header">
+            <h3>Dates & Travellers</h3>
+            <p>Set your journey departure, length of stay, and group count.</p>
+          </div>
+
+          <div class="when-who-grid">
+            <!-- Start Date -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="calendar" style="color:#7C3AED;width:18px;height:18px;"></i>
+                <span>Departure Date</span>
+              </div>
+              <div class="modern-input-wrap">
+                <input type="date" id="startDateInput" class="modern-input" style="padding-left:1rem;" />
+              </div>
+              <div class="stepper-subtext">Weekend trips recommended</div>
+            </div>
+
+            <!-- Duration (Days) -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="clock" style="color:#F43F5E;width:18px;height:18px;"></i>
+                <span>Duration (Days)</span>
+              </div>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn" onclick="window.stepDays(-1)">-</button>
+                <div class="stepper-value-display" id="numDaysVal">2</div>
+                <button type="button" class="stepper-btn" onclick="window.stepDays(1)">+</button>
+              </div>
+              <div class="stepper-subtext" id="daysSubtext">Weekend Getaway</div>
+            </div>
+
+            <!-- Travellers -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="users" style="color:#10B981;width:18px;height:18px;"></i>
+                <span>Travellers</span>
+              </div>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn" onclick="window.stepTravellers(-1)">-</button>
+                <div class="stepper-value-display" id="numTravellersVal">2</div>
+                <button type="button" class="stepper-btn" onclick="window.stepTravellers(1)">+</button>
+              </div>
+              <div class="stepper-subtext" id="travellersSubtext">Couple</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: HOW (TRANSPORT) -->
+        <div class="wizard-panel" data-step="3">
+          <div class="panel-header">
+            <h3>Choose your mode of travel</h3>
+            <p>Select how you want to move between cities and attractions.</p>
+          </div>
+
+          <div class="transport-cards-grid">
+            <!-- Car -->
+            <div class="transport-card selected" data-mode="car">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="car" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Car</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Personal or rental car</p>
+              <span class="transport-badge">15 km/L • Toll Roads</span>
+            </div>
+
+            <!-- Bike -->
+            <div class="transport-card" data-mode="bike">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="bike" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Bike</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Motorbike expedition</p>
+              <span class="transport-badge">40 km/L • Zero Tolls</span>
+            </div>
+
+            <!-- Bus -->
+            <div class="transport-card" data-mode="bus">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="bus" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Bus</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">AC Sleeper / Express</p>
+              <span class="transport-badge">₹1.80 / km / person</span>
+            </div>
+
+            <!-- Train -->
+            <div class="transport-card" data-mode="train">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="train" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Train</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Superfast / Express</p>
+              <span class="transport-badge">₹1.25 / km / person</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: BUDGET & DRAGGABLE DONUT CHART -->
+        <div class="wizard-panel" data-step="4">
+          <div class="panel-header">
+            <h3>Budget & Allocation</h3>
+            <p>Define your total trip budget and interact with the donut chart to divide expenses.</p>
+          </div>
+
+          <div class="budget-step-container">
+            <!-- Total Budget Range & Presets -->
+            <div class="budget-top-bar">
+              <div class="budget-amount-display">
+                <h4>Total Trip Budget</h4>
+                <div class="budget-big-number">
+                  <span class="currency">₹</span>
+                  <span id="totalBudgetBigDisplay">18,000</span>
+                </div>
+                <input type="range" id="totalBudgetRange" class="budget-range-input" min="5000" max="60000" step="500" value="18000" />
+              </div>
+
+              <div class="budget-presets-row">
+                <button type="button" class="budget-preset-chip" data-amount="8000">₹8K (Backpacker)</button>
+                <button type="button" class="budget-preset-chip active" data-amount="18000">₹18K (Balanced)</button>
+                <button type="button" class="budget-preset-chip" data-amount="30000">₹30K (Comfort)</button>
+                <button type="button" class="budget-preset-chip" data-amount="45000">₹45K (Luxury)</button>
+              </div>
+            </div>
+
+            <!-- Interactive Donut Chart & Category Sliders -->
+            <div class="donut-interactive-grid">
+              
+              <!-- SVG Donut Chart with Center Display -->
+              <div class="donut-chart-wrapper">
+                <svg id="donutSvg" class="donut-svg" viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r="75" fill="none" stroke="var(--border-subtle)" stroke-width="28" />
+                  <g id="donutSlicesGroup"></g>
+                </svg>
+
+                <div class="donut-center-badge">
+                  <div class="donut-center-title" id="donutCenterTitle">Total Budget</div>
+                  <div class="donut-center-amount" id="donutCenterAmount">₹18,000</div>
+                  <div class="donut-center-pct" id="donutCenterPct">100%</div>
+                </div>
+              </div>
+
+              <!-- Synchronized Category Shares Sliders -->
+              <div class="category-shares-controls">
+                
+                <!-- Stay -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#F43F5E;"></span> Stay (Hotels)</span>
+                    <span><strong id="pct-accommodation">35%</strong> (<span id="amt-accommodation">₹6,300</span>)</span>
+                  </div>
+                  <input type="range" id="slider-accommodation" class="cat-slider-track" min="10" max="60" value="35" style="accent-color:#F43F5E;" />
+                </div>
+
+                <!-- Food -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#10B981;"></span> Food & Dining</span>
+                    <span><strong id="pct-food">25%</strong> (<span id="amt-food">₹4,500</span>)</span>
+                  </div>
+                  <input type="range" id="slider-food" class="cat-slider-track" min="10" max="60" value="25" style="accent-color:#10B981;" />
+                </div>
+
+                <!-- Transport -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#0284C7;"></span> Fuel & Tolls</span>
+                    <span><strong id="pct-transport">20%</strong> (<span id="amt-transport">₹3,600</span>)</span>
+                  </div>
+                  <input type="range" id="slider-transport" class="cat-slider-track" min="10" max="50" value="20" style="accent-color:#0284C7;" />
+                </div>
+
+                <!-- Sightseeing -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#7C3AED;"></span> Sightseeing</span>
+                    <span><strong id="pct-sightseeing">20%</strong> (<span id="amt-sightseeing">₹3,600</span>)</span>
+                  </div>
+                  <input type="range" id="slider-sightseeing" class="cat-slider-track" min="5" max="50" value="20" style="accent-color:#7C3AED;" />
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Wizard Navigation Footer -->
+      <div class="wizard-footer-nav">
+        <button type="button" class="wizard-btn" id="wizardBackBtn">
+          <i data-lucide="arrow-left"></i> Back
+        </button>
+        <button type="button" class="wizard-btn primary" id="wizardNextBtn">
+          Next Step <i data-lucide="arrow-right"></i>
+        </button>
+        <button type="button" class="wizard-btn primary" id="wizardSubmitBtn" style="display:none;">
+          <i data-lucide="sparkles"></i> Generate Itinerary
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Playful Animated Road Loader ("Generating" Screen) -->
+    <section class="generating-screen" id="generatingScreen">
+      <div class="road-stage">
+        <svg class="road-svg" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background Road -->
+          <path class="road-track" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+          <path class="road-track-inner" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+          
+          <!-- Moving Dotted Center Line -->
+          <path class="road-dotted-line" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+
+          <!-- Floating Clouds -->
+          <path class="cloud-float" d="M 50 40 a 10 10 0 0 1 18 -4 a 14 14 0 0 1 24 2 a 10 10 0 0 1 2 12 l -44 0 z" />
+          <path class="cloud-float" d="M 260 30 a 8 8 0 0 1 14 -3 a 12 12 0 0 1 20 2 a 8 8 0 0 1 2 10 l -36 0 z" style="animation-delay:-3s;" />
+
+          <!-- Animated Car travelling along the curve -->
+          <g class="animated-car-group">
+            <!-- Mini Car Graphic -->
+            <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#7C3AED" />
+            <rect x="-6" y="-6" width="14" height="12" rx="2" fill="#EDE9FE" />
+            <circle cx="-8" cy="8" r="3" fill="#241434" />
+            <circle cx="8" cy="8" r="3" fill="#241434" />
+            
+            <animateMotion 
+              path="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" 
+              dur="3s" 
+              repeatCount="indefinite" 
+              rotate="auto" />
+          </g>
+        </svg>
+      </div>
+
+      <h3 class="generating-title">Crafting Your Travel Experience</h3>
+      <div class="generating-status-pill">
+        <span class="status-spinner-dot"></span>
+        <span id="generatingStatusText">Analyzing optimal routes & road conditions...</span>
+      </div>
+
+      <div class="generating-progress-bar-wrap">
+        <div class="generating-progress-fill"></div>
+      </div>
+    </section>
+
+    <!-- Results Section (Tabs, Leaflet Map, Checklist) -->
+    <section class="results-card" id="resultsSection">
+
+      <!-- Feasibility Banner -->
+      <div class="feasibility-banner banner-success" id="feasibilityBanner">
+        <div class="banner-icon-box">
+          <i data-lucide="check-circle" style="color:#10B981"></i>
+        </div>
+        <div class="banner-content">
+          <h4 id="feasibilityTitle">Itinerary Fits Within Budget!</h4>
+          <p id="feasibilityMsg">All estimated costs fit comfortably within your allocated budget.</p>
+        </div>
+      </div>
+
+      <!-- Cheapest Alternative Card -->
+      <div class="cheapest-alt-card hidden" id="cheapestAltCard">
+        <div>
+          <h4 style="font-size:1.05rem;font-weight:700;color:#F43F5E;">Cheapest Feasible Alternative Available</h4>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-top:2px;" id="altSummary"></p>
+        </div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:#F43F5E;" id="altPrice"></div>
+      </div>
+
+      <!-- Cost Breakdown Cards -->
+      <div class="cost-breakdown-grid">
+        <div class="cost-card total">
+          <div class="cost-card-header">
+            <span>Total Cost</span>
+            <i data-lucide="wallet" style="color:#7C3AED;width:18px;height:18px;"></i>
+          </div>
+          <div class="cost-card-amount" id="costTotalVal">₹0</div>
+          <div class="cost-card-subtext" id="costTotalSub">Budget: ₹0</div>
+        </div>
+
+        <div class="cost-card stay">
+          <div class="cost-card-header">
+            <span>Accommodation</span>
+            <i data-lucide="hotel" style="color:#F43F5E;width:18px;height:18px;"></i>
+          </div>
+          <div class="cost-card-amount" id="costStayVal">₹0</div>
+          <div class="cost-card-subtext">Selected Hotel</div>
+        </div>
+
+        <div class="cost-card food">
+          <div class="cost-card-header">
+            <span>Food & Dining</span>
+            <i data-lucide="utensils" style="color:#10B981;width:18px;height:18px;"></i>
+          </div>
+          <div class="cost-card-amount" id="costFoodVal">₹0</div>
+          <div class="cost-card-subtext">All meals included</div>
+        </div>
+
+        <div class="cost-card trans">
+          <div class="cost-card-header">
+            <span>Fuel & Tolls</span>
+            <i data-lucide="car" style="color:#0284C7;width:18px;height:18px;"></i>
+          </div>
+          <div class="cost-card-amount" id="costTransVal">₹0</div>
+          <div class="cost-card-subtext" id="costTransSub">Fuel + Tolls</div>
+        </div>
+
+        <div class="cost-card sight">
+          <div class="cost-card-header">
+            <span>Sightseeing</span>
+            <i data-lucide="landmark" style="color:#7C3AED;width:18px;height:18px;"></i>
+          </div>
+          <div class="cost-card-amount" id="costSightVal">₹0</div>
+          <div class="cost-card-subtext">Attractions tickets</div>
+        </div>
+      </div>
+
+      <!-- Share & Export Bar with Partner Booking Disclaimer -->
+      <div class="share-bar-container">
+        <div class="disclaimer-pill">
+          <i data-lucide="info" style="color:#7C3AED;width:16px;height:16px;"></i>
+          <span><strong>Booking Disclaimer:</strong> Prices, availability and schedules are estimates. Final bookings happen directly on partner platforms.</span>
+        </div>
+
+        <div class="share-buttons-group">
+          <button type="button" class="share-action-btn" onclick="window.copyTripTextSummary()">
+            <i data-lucide="copy"></i> Copy Summary
+          </button>
+          <a href="#" class="share-action-btn whatsapp" id="whatsappShareLink" target="_blank" rel="noopener noreferrer">
+            <i data-lucide="share-2"></i> WhatsApp Share
+          </a>
+          <button type="button" class="share-action-btn" onclick="window.print()">
+            <i data-lucide="printer"></i> Printable View
           </button>
         </div>
+      </div>
 
-        <div class="features-list">
-          <div class="feat-item">✓ 5 Route Styles: Fastest, Shortest, Cheapest, Scenic, Easiest</div>
-          <div class="feat-item">✓ Leaflet + OpenStreetMap with OSRM Road Geometry</div>
-          <div class="feat-item">✓ Greedy budget-fitting & dynamic reallocation</div>
-          <div class="feat-item">✓ Accurate fuel & highway toll estimation</div>
+      <!-- Tabs Navigation Bar -->
+      <div class="results-tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="itineraryTab">
+          <i data-lucide="calendar"></i> Day-by-Day Itinerary
+        </button>
+        <button type="button" class="tab-btn" data-tab="routesTab">
+          <i data-lucide="map"></i> Route Styles & Leaflet Map
+        </button>
+        <button type="button" class="tab-btn" data-tab="checklistTab">
+          <i data-lucide="list-checks"></i> Booking Checklist
+          <span class="tab-counter-badge" id="checklistTabBadge">0/0</span>
+        </button>
+        <button type="button" class="tab-btn" data-tab="hotelsTab">
+          <i data-lucide="hotel"></i> Hotels
+        </button>
+        <button type="button" class="tab-btn" data-tab="restaurantsTab">
+          <i data-lucide="utensils"></i> Restaurants
+        </button>
+        <button type="button" class="tab-btn" data-tab="attractionsTab">
+          <i data-lucide="landmark"></i> Attractions
+        </button>
+      </div>
+
+      <!-- TAB 1: ITINERARY -->
+      <div class="tab-pane active" id="itineraryTab">
+        <div id="itineraryTimeline"></div>
+      </div>
+
+      <!-- TAB 2: ROUTES & LEAFLET MAP -->
+      <div class="tab-pane" id="routesTab">
+        <div class="route-styles-grid" id="routeStylesContainer"></div>
+        <div class="map-card-wrapper">
+          <div id="leafletMapContainer"></div>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div id="loadingState" class="loading-state hidden">
-        <div class="spinner"></div>
-        <h3>Optimizing your journey with Python & Spring Boot...</h3>
-        <p>Ranking destination hotels, evaluating route fuel & tolls, and constructing a day-by-day plan.</p>
+      <!-- TAB 3: BOOKING CHECKLIST -->
+      <div class="tab-pane" id="checklistTab">
+        <div class="checklist-stats-bar">
+          <span class="chk-stat-chip">Total Stops: <strong id="chkTotalCount">0</strong></span>
+          <span class="chk-stat-chip booked">Booked: <strong id="chkBookedCount">0</strong></span>
+          <span class="chk-stat-chip pending">Call Pending: <strong id="chkPendingCount">0</strong></span>
+          <span class="chk-stat-chip unbooked">Not Booked: <strong id="chkUnbookedCount">0</strong></span>
+          <div class="chk-progress-wrap">
+            <div class="chk-progress-fill" id="chkProgressBar" style="width:0%;"></div>
+          </div>
+        </div>
+        <div class="checklist-cards-container" id="checklistItemsList"></div>
       </div>
 
-      <!-- Generated Results Wrapper -->
-      <div id="planContent" class="plan-content hidden">
-
-        <!-- Feasibility Banner / Warning -->
-        <div id="feasibilityBanner" class="banner banner-success">
-          <div class="banner-icon">✓</div>
-          <div class="banner-body">
-            <h4 id="feasibilityTitle">Itinerary Generated Within Budget</h4>
-            <p id="feasibilityMsg">All expenses comfortably fit within your specified budget.</p>
-          </div>
-        </div>
-
-        <!-- Cheapest Feasible Alternative Card (shown when budget too low) -->
-        <div id="cheapestAlternativeCard" class="cheapest-alt-card hidden">
-          <div class="alt-header">
-            <span class="alt-badge">💡 Recommended Feasible Alternative</span>
-            <span class="alt-price" id="altPrice">Estimated: ₹0</span>
-          </div>
-          <p id="altSummary" class="alt-summary"></p>
-          <ul id="altTipsList" class="alt-tips"></ul>
-        </div>
-
-        <!-- Cost Breakdown Summary Header -->
-        <div class="cost-summary-box">
-          <div class="cost-stat">
-            <span class="stat-label">Estimated Total</span>
-            <span class="stat-value text-primary" id="totalCostDisplay">₹0</span>
-            <span class="stat-estimate-tag">*Estimate</span>
-          </div>
-          <div class="cost-stat">
-            <span class="stat-label">Total Budget Max</span>
-            <span class="stat-value" id="budgetMaxDisplay">₹0</span>
-          </div>
-          <div class="cost-stat">
-            <span class="stat-label" id="amountLeftLabel">Amount Left</span>
-            <span class="stat-value text-success" id="amountLeftDisplay">₹0</span>
-          </div>
-        </div>
-
-        <!-- Route & Highway Badge Bar -->
-        <div class="route-details-strip">
-          <div class="route-pill">🛣️ <span id="routeDistance">0 km</span></div>
-          <div class="route-pill">🧾 Tolls: <span id="routeToll">₹0</span></div>
-          <div class="route-pill">📍 Highway: <span id="routeHighway">NH</span></div>
-          <div class="route-pill">👥 Travellers: <span id="travellersDisplay">2</span></div>
-          <div class="route-pill">🛏️ Rooms: <span id="roomsDisplay">1</span></div>
-        </div>
-
-        <!-- Cost Breakdown Visual Progress Stack -->
-        <div class="breakdown-stack-wrapper">
-          <div class="stack-header">
-            <h4>Cost Breakdown by Category</h4>
-            <span class="price-disclaimer">*Estimated INR</span>
-          </div>
-          <div class="breakdown-grid">
-            <div class="breakdown-card acc">
-              <span class="bd-icon">🏨</span>
-              <span class="bd-name">Accommodation</span>
-              <span class="bd-amount" id="costAcc">₹0</span>
-              <span class="bd-detail" id="hotelNameSub">Selected Stay</span>
-            </div>
-            <div class="breakdown-card food">
-              <span class="bd-icon">🍽️</span>
-              <span class="bd-name">Food & Dining</span>
-              <span class="bd-amount" id="costFood">₹0</span>
-              <span class="bd-detail" id="mealsSub">All meals included</span>
-            </div>
-            <div class="breakdown-card trans">
-              <span class="bd-icon">🚗</span>
-              <span class="bd-name">Fuel & Tolls</span>
-              <span class="bd-amount" id="costTransport">₹0</span>
-              <span class="bd-detail" id="transSub">Fuel + Tolls</span>
-            </div>
-            <div class="breakdown-card sight">
-              <span class="bd-icon">🎟️</span>
-              <span class="bd-name">Sightseeing</span>
-              <span class="bd-amount" id="costSight">₹0</span>
-              <span class="bd-detail" id="sightSub">Tickets</span>
-            </div>
-            <div class="breakdown-card misc">
-              <span class="bd-icon">🛡️</span>
-              <span class="bd-name">Contingency Buffer</span>
-              <span class="bd-amount" id="costMisc">₹0</span>
-              <span class="bd-detail">Safety reserve</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Share Itinerary & Booking Disclaimer Bar -->
-        <div class="share-and-disclaimer-bar">
-          <div class="disclaimer-badge">
-            <span class="disc-icon">ℹ️</span>
-            <span><strong>Booking Disclaimer:</strong> Prices, seat/room availability, and timings are realistic estimates. Final reservations, tickets, and payments take place directly on partner websites.</span>
-          </div>
-          <div class="share-actions">
-            <button type="button" class="action-pill-btn" onclick="copyTripTextSummary()">📋 Copy Summary</button>
-            <a id="whatsappShareLink" class="action-pill-btn whatsapp-btn" target="_blank" rel="noopener noreferrer" href="#">💬 WhatsApp Share</a>
-            <button type="button" class="action-pill-btn print-btn" onclick="printItineraryView()">🖨️ Printable View</button>
-          </div>
-        </div>
-
-        <!-- Tabbed Navigation: Itinerary vs Routes vs Hotels vs Restaurants vs Attractions vs Checklist vs Saved Trips -->
-        <div class="tabs-container">
-          <div class="tabs-nav">
-            <button type="button" class="tab-btn active" onclick="switchTab('itineraryTab')">📅 Day-by-Day Itinerary</button>
-            <button type="button" class="tab-btn" onclick="switchTab('routesTab')">🗺️ Route Styles & Map</button>
-            <button type="button" class="tab-btn" onclick="switchTab('checklistTab')">📋 Booking Checklist <span class="badge-counter" id="checklistCounter">0</span></button>
-            <button type="button" class="tab-btn" onclick="switchTab('hotelsTab')">🏨 Hotels</button>
-            <button type="button" class="tab-btn" onclick="switchTab('restaurantsTab')">🍽️ Restaurants</button>
-            <button type="button" class="tab-btn" onclick="switchTab('attractionsTab')">🏛️ Attractions</button>
-            <button type="button" class="tab-btn" onclick="switchTab('historyTab')">📜 Saved Trips</button>
-          </div>
-
-          <!-- Tab 1: Day-by-Day Itinerary -->
-          <div id="itineraryTab" class="tab-pane active">
-            <div id="itineraryTimeline" class="itinerary-timeline">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Tab 1.5: Route Styles & Interactive Leaflet Map -->
-          <div id="routesTab" class="tab-pane">
-            <div class="tab-header">
-              <div>
-                <h3>Multi-Style Route Planning & Map</h3>
-                <p>Connects hotels, dining spots & sights into one ordered lane using Nearest-Neighbour heuristic + 2-Opt optimization.</p>
-              </div>
-              <button type="button" class="small-btn primary-small-btn" onclick="loadRouteOptionsForTrip()">🔄 Recalculate Routes</button>
-            </div>
-
-            <!-- Route Type Selection Cards -->
-            <div class="route-types-grid" id="routeTypesGrid">
-              <div class="route-type-card active" data-type="fastest" onclick="selectRouteType('fastest')">
-                <div class="rtc-header">
-                  <span class="rtc-icon">⚡</span>
-                  <span class="rtc-title">Fastest</span>
-                  <span class="rtc-tag" id="tag-fastest">Top Speed</span>
-                </div>
-                <div class="rtc-metrics">
-                  <span class="metric" id="card-time-fastest">-- mins</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-dist-fastest">-- km</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-cost-fastest">₹--</span>
-                </div>
-                <p class="rtc-desc">Min travel time via bypasses & arterial express links.</p>
-              </div>
-
-              <div class="route-type-card" data-type="shortest" onclick="selectRouteType('shortest')">
-                <div class="rtc-header">
-                  <span class="rtc-icon">📏</span>
-                  <span class="rtc-title">Shortest</span>
-                  <span class="rtc-tag" id="tag-shortest">Min Distance</span>
-                </div>
-                <div class="rtc-metrics">
-                  <span class="metric" id="card-time-shortest">-- mins</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-dist-shortest">-- km</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-cost-shortest">₹--</span>
-                </div>
-                <p class="rtc-desc">Direct odometer distance across consecutive stops.</p>
-              </div>
-
-              <div class="route-type-card" data-type="cheapest" onclick="selectRouteType('cheapest')">
-                <div class="rtc-header">
-                  <span class="rtc-icon">💰</span>
-                  <span class="rtc-title">Cheapest</span>
-                  <span class="rtc-tag" id="tag-cheapest">Lowest Fuel & Toll</span>
-                </div>
-                <div class="rtc-metrics">
-                  <span class="metric" id="card-time-cheapest">-- mins</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-dist-cheapest">-- km</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-cost-cheapest">₹--</span>
-                </div>
-                <p class="rtc-desc">Minimizes fuel consumption and avoids toll highways.</p>
-              </div>
-
-              <div class="route-type-card" data-type="scenic" onclick="selectRouteType('scenic')">
-                <div class="rtc-header">
-                  <span class="rtc-icon">🌊</span>
-                  <span class="rtc-title">Scenic</span>
-                  <span class="rtc-tag" id="tag-scenic">Most Scenic</span>
-                </div>
-                <div class="rtc-metrics">
-                  <span class="metric" id="card-time-scenic">-- mins</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-dist-scenic">-- km</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-cost-scenic">₹--</span>
-                </div>
-                <p class="rtc-desc">Passes coastlines, parks & heritage spots (max 25% detour cap).</p>
-              </div>
-
-              <div class="route-type-card" data-type="easiest" onclick="selectRouteType('easiest')">
-                <div class="rtc-header">
-                  <span class="rtc-icon">🛣️</span>
-                  <span class="rtc-title">Easiest</span>
-                  <span class="rtc-tag" id="tag-easiest">Least Stressful</span>
-                </div>
-                <div class="rtc-metrics">
-                  <span class="metric" id="card-time-easiest">-- mins</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-dist-easiest">-- km</span>
-                  <span class="sep">•</span>
-                  <span class="metric" id="card-cost-easiest">₹--</span>
-                </div>
-                <p class="rtc-desc">Fewer turns, fewer complex junctions, wider main avenues.</p>
-              </div>
-            </div>
-
-            <!-- Warning Banner for Late Arrivals / Closing Times -->
-            <div id="routeWarningBanner" class="route-warning-banner hidden">
-              <span class="warn-icon">⚠️</span>
-              <div class="warn-body">
-                <strong>Schedule Warning:</strong>
-                <span id="routeWarningText">A stop will be reached after its closing time.</span>
-                <span class="warn-hint">Suggestion: Reorder this stop earlier in the day or adjust departure time.</span>
-              </div>
-            </div>
-
-            <!-- Active Route Summary Info -->
-            <div class="active-route-summary" id="activeRouteSummary">
-              <div class="ars-tag" id="activeRouteTag">⚡ Fastest Route</div>
-              <div class="ars-details">
-                <span id="arsStats">Total: 0 km • 0 mins • ₹0 estimated cost • Scenic Rating: 0.0 / 1.0</span>
-              </div>
-              <div class="ars-formula" id="arsFormula">Optimization Weight: Minimum travel time via real highway networks</div>
-            </div>
-
-            <!-- Leaflet Interactive Map -->
-            <div class="map-wrapper">
-              <div id="routeMap" class="route-map"></div>
-              <div class="map-legend">
-                <span class="legend-item"><span class="marker-dot hotel-dot">🏨</span> Hotel</span>
-                <span class="legend-item"><span class="marker-dot food-dot">🍽️</span> Restaurant</span>
-                <span class="legend-item"><span class="marker-dot sight-dot">🏛️</span> Attraction</span>
-                <span class="legend-item"><span class="route-line-sample"></span> Road Route (OSRM Geometry)</span>
-              </div>
-            </div>
-
-            <!-- Side-by-Side Comparison Table -->
-            <div class="comparison-section">
-              <h4>Side-by-Side Route Comparison</h4>
-              <div class="table-responsive">
-                <table class="route-comparison-table" id="routeComparisonTable">
-                  <thead>
-                    <tr>
-                      <th>Route Style</th>
-                      <th>Tag</th>
-                      <th>Total Distance</th>
-                      <th>Est. Driving Time</th>
-                      <th>Fuel Cost</th>
-                      <th>Toll Cost</th>
-                      <th>Total Cost</th>
-                      <th>Scenic Index</th>
-                      <th>Stops</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="comparisonTableBody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Chronological Timeline View -->
-            <div class="route-timeline-section">
-              <h4>Ordered Stop Timeline & Leg Instructions</h4>
-              <p class="sub-text">Sequential navigation lane with arrival times, recommended stay durations, departure times, and leg-by-leg metrics.</p>
-              <div class="route-timeline-list" id="routeTimelineList">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <!-- Stop Details Modal / Popup View -->
-            <div id="stopDetailsModal" class="stop-details-modal hidden">
-              <div class="modal-card">
-                <div class="modal-header">
-                  <h4 id="sdName">Stop Details</h4>
-                  <button type="button" class="close-modal-btn" onclick="closeStopModal()">✕</button>
-                </div>
-                <div class="modal-body">
-                  <div class="sd-badges" id="sdBadges"></div>
-                  <p id="sdAddress" class="sd-address"></p>
-                  <div class="sd-stats-grid">
-                    <div class="sd-stat">
-                      <span class="sd-label">Opening Hours</span>
-                      <span class="sd-val" id="sdHours">--</span>
-                    </div>
-                    <div class="sd-stat">
-                      <span class="sd-label">Price / Cost</span>
-                      <span class="sd-val" id="sdPrice">--</span>
-                    </div>
-                    <div class="sd-stat">
-                      <span class="sd-label">Guest Rating</span>
-                      <span class="sd-val" id="sdRating">--</span>
-                    </div>
-                    <div class="sd-stat">
-                      <span class="sd-label">Scenic Score</span>
-                      <span class="sd-val" id="sdScenic">--</span>
-                    </div>
-                  </div>
-                  <p id="sdDescription" class="sd-desc"></p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Tab 2: Hotels -->
-          <div id="hotelsTab" class="tab-pane">
-            <div class="tab-header">
-              <h3>Hotels within Budget at Destination</h3>
-              <p>Ranked by guest rating vs per-night price trade-off.</p>
-            </div>
-            <div id="hotelsList" class="recommendations-grid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Tab 3: Restaurants -->
-          <div id="restaurantsTab" class="tab-pane">
-            <div class="tab-header">
-              <h3>Recommended Restaurants</h3>
-              <p>Filtered by meal budget per person with local culinary specialties.</p>
-            </div>
-            <div id="restaurantsList" class="recommendations-grid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Tab 4: Attractions -->
-          <div id="attractionsTab" class="tab-pane">
-            <div class="tab-header">
-              <h3>Tourist Attractions & Sightseeing</h3>
-              <p>Sensible schedule, opening/closing timings, and ticket prices.</p>
-            </div>
-            <div id="attractionsList" class="recommendations-grid">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Tab 4.5: Trip Booking Checklist -->
-          <div id="checklistTab" class="tab-pane">
-            <div class="tab-header checklist-header-row">
-              <div>
-                <h3>📋 Trip Booking Checklist</h3>
-                <p>Track booking confirmations, call statuses, reference numbers & notes for every stop in your itinerary.</p>
-              </div>
-              <div class="checklist-summary-chips" id="checklistStats">
-                <span class="chip chip-total">Total: <strong id="chkTotalStops">0</strong></span>
-                <span class="chip chip-booked">Booked: <strong id="chkBookedCount">0</strong></span>
-                <span class="chip chip-pending">Call Pending: <strong id="chkPendingCount">0</strong></span>
-                <span class="chip chip-unbooked">Not Booked: <strong id="chkUnbookedCount">0</strong></span>
-              </div>
-            </div>
-
-            <!-- Booking Progress Bar -->
-            <div class="booking-progress-container">
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" id="bookingProgressBar" style="width: 0%;"></div>
-              </div>
-              <span class="progress-text" id="bookingProgressText">0% Complete</span>
-            </div>
-
-            <!-- Checklist Items List -->
-            <div id="checklistItemsList" class="checklist-items-grid">
-              <!-- Dynamically populated with status dropdowns, refs, notes, and partner links -->
-            </div>
-          </div>
-
-          <!-- Tab 5: Saved Trips History -->
-          <div id="historyTab" class="tab-pane">
-            <div class="tab-header">
-              <h3>Previously Planned Trips</h3>
-              <div>
-                <button type="button" class="small-btn" onclick="loadSavedTrips()">Refresh History</button>
-                <button type="button" class="small-btn" style="background:#fee2e2;color:#b91c1c;border-color:#fca5a5;margin-left:8px;" onclick="clearTripHistory()">🗑️ Clear History</button>
-              </div>
-            </div>
-            <div id="savedTripsList" class="saved-trips-list">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-        </div>
-
+      <!-- TAB 4: HOTELS -->
+      <div class="tab-pane" id="hotelsTab">
+        <div id="hotelsContainer" class="checklist-cards-container"></div>
       </div>
+
+      <!-- TAB 5: RESTAURANTS -->
+      <div class="tab-pane" id="restaurantsTab">
+        <div id="restaurantsContainer" class="checklist-cards-container"></div>
+      </div>
+
+      <!-- TAB 6: ATTRACTIONS -->
+      <div class="tab-pane" id="attractionsTab">
+        <div id="attractionsContainer" class="checklist-cards-container"></div>
+      </div>
+
     </section>
 
   </main>
 
-  <footer class="app-footer">
-    <div class="footer-container">
-      <p>Routewise Journey Planner • Built with Java 17 + Spring Boot, Python 3 + FastAPI, MySQL, & Modern Vanilla JS.</p>
-      <p class="disclaimer-text">Disclaimer: All prices, fuel rates, and timings are reasonable estimates for journey planning purposes.</p>
-    </div>
-  </footer>
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button type="button" class="bottom-nav-item active" data-action="plan">
+      <i data-lucide="compass"></i>
+      <span>Plan</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="itinerary">
+      <i data-lucide="calendar"></i>
+      <span>Itinerary</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="routes">
+      <i data-lucide="map"></i>
+      <span>Routes</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="checklist">
+      <i data-lucide="list-checks"></i>
+      <span>Bookings</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="theme">
+      <i data-lucide="moon"></i>
+      <span>Theme</span>
+    </button>
+  </nav>
 
-  <!-- Floating Toast Notification -->
-  <div id="toastNotification" class="toast-notification hidden">
-    <span class="toast-icon">✓</span>
-    <span id="toastMessage">Success</span>
-  </div>
+  <!-- Global Toast Notification -->
+  <div class="app-toast" id="appToast">Notification</div>
 
-  <script src="app.js?v=2.2"></script>
+  <!-- Main ES Module Script with Cache-Busting -->
+  <script type="module" src="js/app.js?v=3.1"></script>
 </body>
 </html>

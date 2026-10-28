@@ -1,0 +1,117 @@
+/* ==========================================================================
+   ROUTEWISE DESIGN SYSTEM - VARIABLES & THEME TOKENS
+   Dreamy Pastel Travel Palette with Deep Plum / Indigo Accents
+   ========================================================================== */
+
+:root {
+  /* --- Pastel Base Palette --- */
+  --pastel-cream: #FCF9F5;
+  --pastel-blush: #FFE7EB;
+  --pastel-blush-strong: #FDA4AF;
+  --pastel-lavender: #EBE8FC;
+  --pastel-lavender-strong: #C4B5FD;
+  --pastel-sky: #E0F2FE;
+  --pastel-sky-strong: #7DD3FC;
+  --pastel-mint: #D1FAE5;
+  --pastel-mint-strong: #6EE7B7;
+  --pastel-amber: #FEF3C7;
+  --pastel-amber-strong: #FCD34D;
+
+  /* --- Category Colors --- */
+  --cat-stay: #F43F5E;          /* Rose / Blush */
+  --cat-stay-bg: #FFE4E8;
+  --cat-food: #10B981;          /* Mint Emerald */
+  --cat-food-bg: #D1FAE5;
+  --cat-transport: #0284C7;     /* Sky Cyan */
+  --cat-transport-bg: #E0F2FE;
+  --cat-sightseeing: #7C3AED;   /* Royal Lavender */
+  --cat-sightseeing-bg: #EDE9FE;
+
+  /* --- Deep Plum / Indigo Brand Accents --- */
+  --brand-plum: #3B1E54;
+  --brand-indigo: #2D1B4E;
+  --brand-plum-hover: #4F2870;
+  --brand-accent-glow: rgba(79, 40, 112, 0.25);
+
+  /* --- Light Theme UI Colors --- */
+  --bg-primary: #FAF7F2;
+  --bg-secondary: #F3EFEA;
+  --surface-card: rgba(255, 255, 255, 0.78);
+  --surface-card-solid: #FFFFFF;
+  --surface-elevated: rgba(255, 255, 255, 0.92);
+  --surface-input: rgba(255, 255, 255, 0.85);
+
+  --border-subtle: rgba(79, 40, 112, 0.08);
+  --border-glass: rgba(255, 255, 255, 0.65);
+  --border-active: #7C3AED;
+
+  --text-main: #241434;
+  --text-secondary: #5E5569;
+  --text-muted: #8E849B;
+  --text-inverse: #FFFFFF;
+
+  /* --- Shadows (Soft Layered) --- */
+  --shadow-sm: 0 4px 12px rgba(45, 27, 78, 0.04);
+  --shadow-md: 0 10px 28px rgba(45, 27, 78, 0.08), 0 2px 8px rgba(45, 27, 78, 0.04);
+  --shadow-lg: 0 20px 45px rgba(45, 27, 78, 0.12), 0 4px 14px rgba(45, 27, 78, 0.06);
+  --shadow-hover: 0 24px 50px rgba(45, 27, 78, 0.16), 0 8px 18px rgba(45, 27, 78, 0.08);
+  --shadow-glow: 0 0 30px rgba(196, 181, 253, 0.45);
+
+  /* --- Radii (Soft Rounded 16-24px) --- */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+
+  /* --- Typography --- */
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* --- Backdrop Blur --- */
+  --glass-blur: blur(18px);
+
+  /* --- Transitions --- */
+  --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   DARK THEME PALETTE
+   Deep Twilight Plum with Glowing Neon Pastels
+   ========================================================================== */
+[data-theme="dark"] {
+  --bg-primary: #120E1E;
+  --bg-secondary: #19142B;
+  --surface-card: rgba(30, 24, 48, 0.72);
+  --surface-card-solid: #1E1830;
+  --surface-elevated: rgba(38, 30, 60, 0.88);
+  --surface-input: rgba(23, 18, 38, 0.85);
+
+  --border-subtle: rgba(235, 232, 252, 0.1);
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-active: #A78BFA;
+
+  --text-main: #F5F2FC;
+  --text-secondary: #B7AFCE;
+  --text-muted: #7E7599;
+  --text-inverse: #120E1E;
+
+  --brand-plum: #A78BFA;
+  --brand-indigo: #C4B5FD;
+  --brand-plum-hover: #DDD6FE;
+  --brand-accent-glow: rgba(167, 139, 250, 0.35);
+
+  /* Adjusted Dark Pastel Badges */
+  --pastel-blush: rgba(244, 63, 94, 0.2);
+  --pastel-lavender: rgba(124, 58, 237, 0.25);
+  --pastel-sky: rgba(2, 132, 199, 0.25);
+  --pastel-mint: rgba(16, 185, 129, 0.2);
+  --pastel-amber: rgba(245, 158, 11, 0.2);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 35px rgba(167, 139, 250, 0.3);
+}
