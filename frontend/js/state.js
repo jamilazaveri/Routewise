@@ -2,8 +2,16 @@
  * Routewise Frontend - State Management Module
  */
 
+function getSafeTheme() {
+  try {
+    return localStorage.getItem('routewise_theme') || 'light';
+  } catch (e) {
+    return 'light';
+  }
+}
+
 export const state = {
-  theme: localStorage.getItem('routewise_theme') || 'light',
+  theme: getSafeTheme(),
   
   wizard: {
     currentStep: 1,
@@ -47,7 +55,9 @@ export const state = {
 // Set theme on HTML document
 export function applyTheme(themeName) {
   state.theme = themeName;
-  localStorage.setItem('routewise_theme', themeName);
+  try {
+    localStorage.setItem('routewise_theme', themeName);
+  } catch (e) {}
   document.documentElement.setAttribute('data-theme', themeName);
   const themeToggle = document.getElementById('themeToggleBtn');
   if (themeToggle) {

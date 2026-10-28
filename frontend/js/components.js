@@ -226,6 +226,8 @@ window.resetBarSegs = () => {
 /* ==========================================================================
    WHAT-IF LIVE BUDGET SLIDER
    ========================================================================== */
+let whatifDebounceTimer = null;
+
 export function handleWhatIfBudgetChange(newVal) {
   const display = document.getElementById('whatifBudgetDisplay');
   if (display) display.textContent = `₹${parseInt(newVal, 10).toLocaleString('en-IN')}`;
@@ -236,6 +238,13 @@ export function handleWhatIfBudgetChange(newVal) {
     slider.style.setProperty('--whatif-pct', `${progress}%`);
   }
 
+  clearTimeout(whatifDebounceTimer);
+  whatifDebounceTimer = setTimeout(() => {
+    applyWhatIfCalculation(newVal);
+  }, 100);
+}
+
+function applyWhatIfCalculation(newVal) {
   if (!state.currentPlan) return;
   const currentCost = Math.round(state.currentPlan.costBreakdown?.total || state.currentPlan.totalEstimatedCost || 0);
   const diff = newVal - currentCost;

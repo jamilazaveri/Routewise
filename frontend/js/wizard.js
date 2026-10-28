@@ -131,11 +131,25 @@ function setupAutocomplete() {
   });
 }
 
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 function bindCityInput(input, dropdown, stateKey) {
   input.value = state.wizard[stateKey];
 
+  const debouncedRender = debounce(() => renderDropdown(input, dropdown, stateKey), 180);
+
   input.addEventListener('focus', () => renderDropdown(input, dropdown, stateKey));
-  input.addEventListener('input', () => renderDropdown(input, dropdown, stateKey));
+  input.addEventListener('input', debouncedRender);
 
   document.addEventListener('click', (e) => {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) {

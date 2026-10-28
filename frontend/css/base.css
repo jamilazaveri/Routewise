@@ -357,3 +357,155 @@ h1, h2, h3, h4, h5, h6 {
   background: #065F46;
   border: 1px solid #10B981;
 }
+
+/* ==========================================================================
+   PHASE 3C: ACCESSIBILITY, REDUCED MOTION, & SKELETON LOADERS
+   ========================================================================== */
+
+/* Visible Focus Indicator for Accessibility (WCAG 2.1 AA) */
+*:focus-visible {
+  outline: 3px solid #7C3AED !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.25) !important;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button Press Micro-interactions */
+.btn-primary:active,
+.header-btn:active,
+.partner-btn:active,
+.btn-add-trip:active,
+.city-chip:active,
+.timeline-day-pill:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.08s ease !important;
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton-box {
+  display: inline-block;
+  height: 1em;
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(226, 232, 240, 0.6);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="dark"] .skeleton-box {
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+.skeleton-box::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 1.8s infinite;
+  content: '';
+}
+
+[data-theme="dark"] .skeleton-box::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Friendly Empty States */
+.friendly-empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: var(--surface-card);
+  border: 1px dashed var(--border-glass);
+  border-radius: var(--radius-xl);
+  max-width: 540px;
+  margin: 2rem auto;
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-subtle);
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* Fallback Notice Banner */
+.fallback-notice-banner {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #B45309;
+}
+
+[data-theme="dark"] .fallback-notice-banner {
+  color: #FCD34D;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animated-route-path,
+  .road-car-marker,
+  .confetti-canvas,
+  .pulse-dot {
+    animation: none !important;
+  }
+}
