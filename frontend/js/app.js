@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let statusCycleInterval = null;
 
 const STATUS_MESSAGES = [
-  "Analyzing best travel corridors in South India...",
+  "Analyzing best travel routes in South India...",
   "Finding high-rated boutique hotels within budget...",
   "Curating regional delicacies and authentic restaurants...",
   "Comparing Fastest, Shortest & Scenic route geometries...",

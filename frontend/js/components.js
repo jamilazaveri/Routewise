@@ -491,7 +491,7 @@ function initLeafletMapInstance() {
     state.leafletMap = L.map('leafletMapContainer', { zoomControl: true }).setView([12.5, 79.5], 8);
     
     // CartoDB Voyager / Positron pastel tiles via fastly CDN (no API key required)
-    L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       subdomains: 'abcd',
       attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -561,7 +561,7 @@ export function renderLeafletMap(route) {
     state.leafletMap = L.map('leafletMapContainer', { zoomControl: true }).setView([12.5, 79.5], 8);
     
     // CartoDB Voyager / Positron pastel tiles via fastly CDN (no API key required)
-    L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       subdomains: 'abcd',
       attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
