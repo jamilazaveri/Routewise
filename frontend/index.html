@@ -23,6 +23,16 @@
   <!-- SortableJS CDN for Drag-and-Drop Timeline Reordering -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
+  <!-- PWA & Mobile Web App Manifest & Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7C3AED">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Routewise">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
   <!-- Modular CSS with Cache-Busting -->
   <link rel="stylesheet" href="css/variables.css?v=3.2">
   <link rel="stylesheet" href="css/base.css?v=3.2">
@@ -30,6 +40,7 @@
   <link rel="stylesheet" href="css/loader.css?v=3.2">
   <link rel="stylesheet" href="css/results.css?v=3.2">
   <link rel="stylesheet" href="css/responsive.css?v=3.2">
+  <link rel="stylesheet" href="css/immersive.css?v=1.0">
 </head>
 <body>
 
@@ -61,6 +72,22 @@
       </div>
 
       <div class="header-actions">
+        <!-- Ambient Procedural Ocean/Breeze Sound Toggle -->
+        <button type="button" class="cinematic-toolbar-btn" id="ambientSoundBtn" title="Toggle Natural Coastal Breeze Audio">
+          <span class="sound-waves-indicator">
+            <span class="sound-wave-bar"></span>
+            <span class="sound-wave-bar"></span>
+            <span class="sound-wave-bar"></span>
+          </span>
+          <span class="btn-label">Ambient Breeze</span>
+        </button>
+
+        <!-- Immersive Parallax & Motion Effects Toggle -->
+        <button type="button" class="cinematic-toolbar-btn active" id="effectsToggleBtn" title="Toggle Parallax, Particles & 3D Tilt">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+          <span class="btn-label">Effects: ON</span>
+        </button>
+
         <button type="button" class="header-btn" onclick="window.switchTab('savedTripsTab')">
           <i data-lucide="bookmark"></i>
           <span>Saved Trips</span>
@@ -85,14 +112,152 @@
   <!-- Main Container -->
   <main class="app-main">
 
-    <!-- Landing Screen Hero Header -->
-    <section class="hero-section">
-      <div class="hero-pill">
-        <i data-lucide="sparkles" style="width:16px;height:16px;color:#7C3AED;"></i>
-        <span>South India Intelligent Travel Engine</span>
+    <!-- SCENIC PARALLAX HERO CONTAINER -->
+    <section class="scenic-hero-container">
+      <!-- Atmospheric Sun Glow -->
+      <div class="scenic-sun-glow"></div>
+
+      <!-- Drifting Clouds SVG Layer -->
+      <div class="scenic-clouds-layer">
+        <svg class="scenic-cloud scenic-cloud-1" viewBox="0 0 100 40">
+          <path d="M 20 30 a 12 12 0 0 1 20 -8 a 16 16 0 0 1 28 2 a 12 12 0 0 1 12 10 a 6 6 0 0 1 -4 6 l -56 0 z"/>
+        </svg>
+        <svg class="scenic-cloud scenic-cloud-2" viewBox="0 0 120 45">
+          <path d="M 25 35 a 14 14 0 0 1 24 -9 a 18 18 0 0 1 32 3 a 14 14 0 0 1 14 12 a 7 7 0 0 1 -5 7 l -65 0 z"/>
+        </svg>
       </div>
-      <h2 class="hero-title">Where to <span class="gradient-text">next?</span></h2>
-      <p class="hero-subtitle">Plan a custom road trip tailored to your budget with greedy optimization, boutique stays, regional cuisine, and 5 route styles.</p>
+
+      <!-- Parallax Layer 1: Distant Western Ghats & Coastal Hills Silhouette -->
+      <div class="parallax-layer parallax-layer-hills">
+        <svg viewBox="0 0 1440 320" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.22;">
+          <path fill="currentColor" d="M0,192L48,181.3C96,171,192,149,288,160C384,171,480,213,576,202.7C672,192,768,128,864,122.7C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        </svg>
+      </div>
+
+      <!-- Parallax Layer 2: Mid-ground Swaying Palms & Dravidian Gopuram Silhouettes -->
+      <div class="parallax-layer parallax-layer-palms">
+        <svg viewBox="0 0 1440 260" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.32;">
+          <!-- Temple Tower Silhouette Left -->
+          <path fill="currentColor" d="M120,260 L135,160 L145,160 L142,120 L152,120 L150,80 L156,60 L160,80 L158,120 L168,120 L165,160 L175,160 L190,260 Z"/>
+          <!-- Coconut Palms Left -->
+          <path fill="currentColor" d="M210,260 Q218,170 240,110 Q215,90 190,105 Q225,120 236,115 Q245,80 230,65 Q250,95 244,115 Q275,100 280,125 Q255,125 246,120 Q240,170 215,260 Z"/>
+          <path fill="currentColor" d="M250,260 Q265,180 290,130 Q270,115 250,130 Q280,140 288,135 Q295,105 285,90 Q305,115 296,135 Q325,125 330,145 Q305,145 296,140 Q285,180 255,260 Z"/>
+          <!-- Rolling Dune / Midground wave -->
+          <path fill="currentColor" d="M0,210 C320,180 480,240 760,200 C1040,160 1280,230 1440,210 L1440,260 L0,260 Z"/>
+          <!-- Coconut Palms Right -->
+          <path fill="currentColor" d="M1240,260 Q1230,175 1205,115 Q1230,95 1255,110 Q1220,125 1209,120 Q1200,85 1215,70 Q1195,100 1201,120 Q1170,105 1165,130 Q1190,130 1199,125 Q1205,175 1235,260 Z"/>
+          <!-- Shore Temple Profile Right -->
+          <path fill="currentColor" d="M1310,260 L1320,180 L1335,180 L1330,140 L1342,140 L1340,110 L1348,90 L1352,110 L1350,140 L1362,140 L1357,180 L1372,180 L1382,260 Z"/>
+        </svg>
+      </div>
+
+      <!-- Parallax Layer 3: Foreground Shoreline & Coastal Vegetation -->
+      <div class="parallax-layer parallax-layer-foreground">
+        <svg viewBox="0 0 1440 140" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.48;">
+          <path fill="currentColor" d="M0,80 C240,50 480,110 800,70 C1120,30 1320,90 1440,75 L1440,140 L0,140 Z"/>
+        </svg>
+      </div>
+
+      <!-- Particle Breeze Canvas (Lightweight, 60fps) -->
+      <canvas class="scenic-breeze-canvas" id="scenicBreezeCanvas"></canvas>
+
+      <!-- Scenic Hero Content -->
+      <div class="scenic-hero-content">
+        <div class="hero-cinematic-pill">
+          <i data-lucide="compass" style="width:15px;height:15px;"></i>
+          <span>South India Intelligent Road Explorer</span>
+        </div>
+        <h2 class="hero-cinematic-title">Step into your next <span class="gradient-text">voyage.</span></h2>
+        <p class="hero-cinematic-subtitle">Experience handcrafted itineraries with greedy budget balancing, boutique heritage stays, coastal dining, and live scenic routing.</p>
+
+        <!-- Winding Travel Scroll Indicator -->
+        <div class="hero-scroll-track-wrap">
+          <svg class="hero-scroll-track-svg" viewBox="0 0 380 40" fill="none">
+            <path d="M 20 25 C 100 10, 180 35, 260 15 C 300 5, 340 30, 370 20" stroke="#7C3AED" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round" opacity="0.6"/>
+            <!-- Pulsing Traveler Pin -->
+            <circle cx="260" cy="15" r="5" fill="#F43F5E" class="travel-vehicle-glow">
+              <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div class="scroll-prompt-text">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+            <span>Scroll to explore or choose a jewel below</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESTINATION 3D POP-UP SHOWCASE -->
+    <section class="destinations-showcase-section">
+      <div class="showcase-header">
+        <div class="showcase-badge">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i> Featured Gateways
+        </div>
+        <h3 class="showcase-title">Explore South India's Crown Jewels</h3>
+        <p class="showcase-subtitle">Hover to explore 3D viewpoints; tap any destination to personalize your planner with its authentic mood and curated landmarks.</p>
+      </div>
+
+      <div class="destination-cards-carousel">
+        <!-- Pondicherry -->
+        <div class="destination-popup-card" data-city="Pondicherry" title="Click to plan for Pondicherry">
+          <img src="https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=600&q=80" alt="Pondicherry French Quarter" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">French Riviera of the East</span>
+            <h4 class="dest-card-name">Pondicherry</h4>
+            <p class="dest-card-desc">Promenade beach walks, yellow colonial villas, Auroville meditation domes, and seaside bistros.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Madurai -->
+        <div class="destination-popup-card" data-city="Madurai" title="Click to plan for Madurai">
+          <img src="https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=600&q=80" alt="Madurai Meenakshi Temple" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Athens of the East</span>
+            <h4 class="dest-card-name">Madurai</h4>
+            <p class="dest-card-desc">2,500-year-old living heritage, soaring Dravidian gopurams, fragrant jasmine markets, and legendary Kari Dosa.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coimbatore -->
+        <div class="destination-popup-card" data-city="Coimbatore" title="Click to plan for Coimbatore">
+          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Coimbatore Western Ghats" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Western Ghats Haven</span>
+            <h4 class="dest-card-name">Coimbatore</h4>
+            <p class="dest-card-desc">Majestic 112-ft Adiyogi Shiva bust, misty mountain foothill breezes, Siruvani sweet water, and temple foothills.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chennai -->
+        <div class="destination-popup-card" data-city="Chennai" title="Click to plan for Chennai">
+          <img src="https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=600&q=80" alt="Chennai Kapaleeshwarar" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Gateway to South India</span>
+            <h4 class="dest-card-name">Chennai</h4>
+            <p class="dest-card-desc">Endless Marina Beach sunrises, 7th-century Mylapore temples, classic filter coffee, and San Thome heritage.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Planner Wizard Card -->
@@ -379,6 +544,45 @@
         </button>
       </div>
 
+    </section>
+
+    <!-- SCROLL STORYTELLING JOURNEY MILESTONES -->
+    <section class="storytelling-container" id="storytellingSection">
+      <div class="storytelling-line-track">
+        <div class="storytelling-line-progress" id="storytellingLineProgress"></div>
+      </div>
+
+      <!-- Milestone 1 -->
+      <div class="story-milestone-card" data-milestone="1">
+        <div class="milestone-node-pin">1</div>
+        <span class="milestone-step-pill">01 • Compass & Waypoints</span>
+        <h4 class="milestone-title">Tell Us Where the Compass Points</h4>
+        <p class="milestone-desc">Choose your origin and destination from our curated South Indian circuit. Whether tracing the coastal East Coast Road to Pondicherry or heading toward the Western Ghats of Coimbatore, our engine maps real road corridors and live weather conditions.</p>
+      </div>
+
+      <!-- Milestone 2 -->
+      <div class="story-milestone-card" data-milestone="2">
+        <div class="milestone-node-pin">2</div>
+        <span class="milestone-step-pill">02 • Dynamic Rupee Allocation</span>
+        <h4 class="milestone-title">Zero Guesswork, 100% Budget Integrity</h4>
+        <p class="milestone-desc">Our greedy budget algorithm balances every single rupee across boutique stays, authentic regional dining, fuel & tolls, and verified entrance tickets. Drag the live what-if slider anytime to see recommendations flex in real time.</p>
+      </div>
+
+      <!-- Milestone 3 -->
+      <div class="story-milestone-card" data-milestone="3">
+        <div class="milestone-node-pin">3</div>
+        <span class="milestone-step-pill">03 • Five Distinct Perspectives</span>
+        <h4 class="milestone-title">Fastest, Shortest, Cheapest, Scenic, or Easiest</h4>
+        <p class="milestone-desc">Never settle for a one-size-fits-all road trip. Switch between five calibrated route styles to prioritize emerald backroads, minimal toll fees, or smooth national highways with animated fly-to mapping.</p>
+      </div>
+
+      <!-- Milestone 4 -->
+      <div class="story-milestone-card" data-milestone="4">
+        <div class="milestone-node-pin">4</div>
+        <span class="milestone-step-pill">04 • One-Tap Direct Reservations</span>
+        <h4 class="milestone-title">Seamless Booking & Offline Trip Checklist</h4>
+        <p class="milestone-desc">Deep-link straight to verified partner portals (MakeMyTrip, Booking.com, official ticket gates) with zero markup, call hotels with prefilled contact buttons, and manage your live trip checklist even on the road.</p>
+      </div>
     </section>
 
     <!-- Playful Animated Road Loader ("Generating" Screen) -->
@@ -740,12 +944,26 @@
     </div>
   </div>
 
+  <!-- PWA Install Banner (Triggered by beforeinstallprompt) -->
+  <div class="pwa-install-banner" id="pwaInstallBanner">
+    <img src="icons/icon-192.png" alt="Routewise App Icon" class="pwa-install-icon" />
+    <div class="pwa-install-text">
+      <h4>Install Routewise App</h4>
+      <p>Add to your home screen for offline travel access & instant planning</p>
+    </div>
+    <div class="pwa-install-actions">
+      <button type="button" class="pwa-btn-confirm" id="pwaConfirmInstallBtn">Install</button>
+      <button type="button" class="pwa-btn-dismiss" id="pwaDismissInstallBtn" title="Dismiss">✕</button>
+    </div>
+  </div>
+
   <!-- Global Toast Notification -->
   <div class="app-toast" id="appToast">Notification</div>
 
   <!-- Main ES Module Script with Cache-Busting -->
   <!-- Real Wikimedia Commons Photos & Descriptions Cache -->
   <script src="js/attraction_images.data.js?v=4.2"></script>
+  <script type="module" src="js/immersive.js?v=1.0"></script>
   <script type="module" src="js/app.js?v=4.2"></script>
 </body>
 </html>

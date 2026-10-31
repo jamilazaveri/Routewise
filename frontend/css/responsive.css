@@ -90,10 +90,25 @@
 
   .bottom-nav {
     display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
-  .app-header .header-actions .header-btn:not(.primary) {
+  .app-header .header-actions .header-btn,
+  .app-header .header-actions .status-pill {
     display: none;
+  }
+
+  .app-header .cinematic-toolbar-btn .btn-label {
+    display: none;
+  }
+
+  .app-header .cinematic-toolbar-btn {
+    padding: 0.45rem 0.65rem;
+  }
+
+  .header-actions {
+    gap: 0.4rem;
   }
 
   .hero-title {

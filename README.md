@@ -424,3 +424,74 @@ In `frontend/style.css`, specify button styling for the new provider:
 | `SPRING_DATASOURCE_USERNAME` | `root` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | *(empty)* | Database password |
 | `MICROSERVICE_URL` | `http://localhost:8000` | URL of the Python FastAPI microservice |
+
+---
+
+## Deploying the Frontend Free (Netlify & Vercel)
+
+The Routewise frontend is a pure static Progressive Web App (PWA) with zero build steps required, making it 100% free to host on either Netlify or Vercel.
+
+### Option A: Free Deployment on Netlify
+1. **Using Netlify CLI**:
+   ```bash
+   npm install -g netlify-cli
+   cd frontend
+   netlify deploy --prod --dir=.
+   ```
+2. **Via Netlify Web UI (GitHub continuous deployment)**:
+   - Go to [app.netlify.com](https://app.netlify.com) and click **"Add new site"** -> **"Import an existing project"**.
+   - Select your Routewise GitHub repository.
+   - Set **Base directory**: `frontend`
+   - Set **Publish directory**: `frontend`
+   - Leave Build command empty.
+   - Click **Deploy Routewise**. Your PWA is live with free HTTPS and automatic asset compression!
+
+### Option B: Free Deployment on Vercel
+1. **Using Vercel CLI**:
+   ```bash
+   npm install -g vercel
+   cd frontend
+   vercel --prod
+   ```
+2. **Via Vercel Web Dashboard**:
+   - Go to [vercel.com/new](https://vercel.com/new) and import your Git repository.
+   - Set **Root Directory** to `frontend`.
+   - Framework Preset: **Other**.
+   - Click **Deploy**. Vercel automatically configures global CDN edge distribution.
+
+---
+
+## Wrapping as a Native Android App (Capacitor)
+
+Routewise is built with a responsive mobile-first UI, bottom navigation bar, safe-area insets, and PWA manifest. You can wrap it into a native Android APK using [Capacitor](https://capacitorjs.com/):
+
+### Step 1: Initialize Capacitor in the Frontend Directory
+```bash
+cd frontend
+npm init -y
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npx cap init Routewise com.routewise.app --web-dir .
+```
+
+### Step 2: Add the Android Platform
+```bash
+npx cap add android
+```
+
+### Step 3: Configure Permissions & Cleartext Traffic (for local backends)
+In `frontend/android/app/src/main/AndroidManifest.xml`, ensure internet permission is present:
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<application
+    android:allowBackup="true"
+    android:usesCleartextTraffic="true"
+    android:theme="@style/AppTheme.NoActionBar">
+```
+
+### Step 4: Sync & Run on Android Device / Emulator
+```bash
+npx cap sync
+npx cap open android
+```
+This opens the project in Android Studio. From there, click **Run** (or `Build > Build APK(s)`) to install and launch Routewise natively on any Android phone or tablet with hardware acceleration, native splash screens, and fullscreen display!
+

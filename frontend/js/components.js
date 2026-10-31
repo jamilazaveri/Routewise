@@ -513,7 +513,7 @@ function addMarkerToMap(latlng, name, stopType, index) {
 
   const customIcon = L.divIcon({
     className: 'custom-pin-wrap',
-    html: `<div class="custom-pin-marker ${pinClass}">${index}</div>`,
+    html: `<div class="custom-pin-marker ${pinClass} pin-drop-bounce" style="animation-delay:${index * 110}ms">${index}</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16]
   });
@@ -548,7 +548,20 @@ function drawAnimatedRoute(coords, routeType) {
       dashArray: routeType === 'scenic' ? '8, 8' : null
     }).addTo(state.leafletMap);
 
-    state.leafletMap.fitBounds(state.mapPolyline.getBounds(), { padding: [50, 50] });
+    const bounds = state.mapPolyline.getBounds();
+    if (bounds && bounds.isValid()) {
+      state.leafletMap.invalidateSize();
+      const size = state.leafletMap.getSize();
+      if (size && size.x > 0 && size.y > 0 && typeof state.leafletMap.flyToBounds === 'function') {
+        try {
+          state.leafletMap.flyToBounds(bounds, { duration: 1.4, easeLinearity: 0.25, padding: [50, 50] });
+        } catch (e) {
+          state.leafletMap.fitBounds(bounds, { padding: [50, 50] });
+        }
+      } else {
+        state.leafletMap.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
     animatePolyline(state.mapPolyline);
   }
 
@@ -597,7 +610,7 @@ export function renderLeafletMap(route) {
 
       const customIcon = L.divIcon({
         className: 'custom-pin-wrap',
-        html: `<div class="custom-pin-marker ${pinClass}">${idx + 1}</div>`,
+        html: `<div class="custom-pin-marker ${pinClass} pin-drop-bounce" style="animation-delay:${(idx + 1) * 110}ms">${idx + 1}</div>`,
         iconSize: [32, 32],
         iconAnchor: [16, 16]
       });
@@ -633,7 +646,20 @@ export function renderLeafletMap(route) {
       dashArray: route.routeType === 'scenic' ? '8, 8' : null
     }).addTo(state.leafletMap);
 
-    state.leafletMap.fitBounds(state.mapPolyline.getBounds(), { padding: [50, 50] });
+    const bounds = state.mapPolyline.getBounds();
+    if (bounds && bounds.isValid()) {
+      state.leafletMap.invalidateSize();
+      const size = state.leafletMap.getSize();
+      if (size && size.x > 0 && size.y > 0 && typeof state.leafletMap.flyToBounds === 'function') {
+        try {
+          state.leafletMap.flyToBounds(bounds, { duration: 1.4, easeLinearity: 0.25, padding: [50, 50] });
+        } catch (e) {
+          state.leafletMap.fitBounds(bounds, { padding: [50, 50] });
+        }
+      } else {
+        state.leafletMap.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
 
     // Animate line as if being drawn
     animatePolyline(state.mapPolyline);

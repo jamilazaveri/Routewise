@@ -116,6 +116,7 @@ function setupAutocomplete() {
       state.wizard.destinationCity = temp;
       startInput.value = state.wizard.startCity;
       destInput.value = state.wizard.destinationCity;
+      if (window.setDestinationMood) window.setDestinationMood(state.wizard.destinationCity);
     });
   }
 
@@ -126,6 +127,7 @@ function setupAutocomplete() {
       if (state.wizard.startCity !== city) {
         state.wizard.destinationCity = city;
         destInput.value = city;
+        if (window.setDestinationMood) window.setDestinationMood(city);
       }
     });
   });
@@ -185,6 +187,9 @@ function renderDropdown(input, dropdown, stateKey) {
       state.wizard[stateKey] = selected;
       input.value = selected;
       dropdown.classList.remove('open');
+      if (stateKey === 'destinationCity' && window.setDestinationMood) {
+        window.setDestinationMood(selected);
+      }
     });
   });
 }

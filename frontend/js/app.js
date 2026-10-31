@@ -169,7 +169,8 @@ export async function loadTripForCity(destCity) {
 }
 
 export async function loadDemoTrip() {
-  return loadTripForCity("Chennai");
+  await loadTripForCity("Chennai");
+  switchTab('routesTab');
 }
 
 window.loadTripForCity = loadTripForCity;
