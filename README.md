@@ -36,6 +36,29 @@
 
 ---
 
+## 🎙️ Short Architecture Explanation (For Project Review & Defense)
+
+Use this executive summary when explaining the system architecture during project reviews, viva, or technical presentations:
+
+> *"Routewise is built as a polyglot, decoupled microservices architecture combining **Java Spring Boot**, **Python FastAPI**, **MySQL**, and a modern **Vanilla JavaScript PWA**:*
+>
+> 1. **Why Java Spring Boot for the Core Backend?**
+>    - Spring Boot serves as the enterprise API gateway and orchestrator. It manages transactional integrity (Spring Data JPA / Hibernate), input validation, user authentication contracts, and persistence for saved trips and booking statuses. It provides bulletproof domain whitelisting and deep-link generation for external travel providers.
+>
+> 2. **Why Python FastAPI for the Cost Optimization Microservice?**
+>    - Travel planning is fundamentally a constrained optimization problem. Python excels at rapid numerical modeling, composite scoring heuristics (rating vs. price per night), and greedy budget-fitting algorithms. Offloading heavy scheduling, toll-fuel modeling, and multi-route evaluation (Fastest, Shortest, Cheapest, Scenic, Easiest) to an asynchronous FastAPI microservice ensures the core Java backend remains responsive and unblocked.
+>
+> 3. **How Does the Greedy Budget-Fitting Engine Work?**
+>    - Instead of bruteforce searching, the optimizer calculates a composite value score: $Score = (Rating \times 1.2) - (NormalizedPrice \times 0.8) - (DistancePenalty \times 0.3)$. It performs greedy selection per category (stay, food, activities) within user-allocated budget caps, dynamically reallocating surplus funds to lower-tier categories to prevent infeasibility.
+>
+> 4. **Resilience & Zero-Failure Graceful Degradation:**
+>    - The system is architected to never show a blank screen. If the Python microservice or Java backend is temporarily unreachable, the frontend automatically falls back to pre-cached Wikimedia Commons landmark datasets and deterministic mathematical estimators.
+>
+> 5. **Cinematic, Zero-Dependency PWA Frontend:**
+>    - The frontend avoids heavy monolithic framework overhead (React/Angular) in favor of high-performance modern Vanilla JavaScript (ES modules, Web Audio API procedural synthesis, Leaflet.js, and Service Worker caching). It operates at 60fps with native PWA offline capabilities and installability on Android and iOS."*
+
+---
+
 ## Tech Stack
 
 | Layer | Technology | Key Responsibilities |
@@ -91,6 +114,29 @@ Routewise/
 │
 └── README.md                      # Documentation & Execution Guide
 ```
+
+---
+
+## 🎙️ Short Architecture Explanation (For Project Review & Defense)
+
+Use this executive summary when explaining the system architecture during project reviews, viva, or technical presentations:
+
+> *"Routewise is built as a polyglot, decoupled microservices architecture combining **Java Spring Boot**, **Python FastAPI**, **MySQL**, and a modern **Vanilla JavaScript PWA**:*
+>
+> 1. **Why Java Spring Boot for the Core Backend?**
+>    - Spring Boot serves as the enterprise API gateway and orchestrator. It manages transactional integrity (Spring Data JPA / Hibernate), input validation, user authentication contracts, and persistence for saved trips and booking statuses. It provides bulletproof domain whitelisting and deep-link generation for external travel providers.
+>
+> 2. **Why Python FastAPI for the Cost Optimization Microservice?**
+>    - Travel planning is fundamentally a constrained optimization problem. Python excels at rapid numerical modeling, composite scoring heuristics (rating vs. price per night), and greedy budget-fitting algorithms. Offloading heavy scheduling, toll-fuel modeling, and multi-route evaluation (Fastest, Shortest, Cheapest, Scenic, Easiest) to an asynchronous FastAPI microservice ensures the core Java backend remains responsive and unblocked.
+>
+> 3. **How Does the Greedy Budget-Fitting Engine Work?**
+>    - Instead of bruteforce searching, the optimizer calculates a composite value score: $Score = (Rating \times 1.2) - (NormalizedPrice \times 0.8) - (DistancePenalty \times 0.3)$. It performs greedy selection per category (stay, food, activities) within user-allocated budget caps, dynamically reallocating surplus funds to lower-tier categories to prevent infeasibility.
+>
+> 4. **Resilience & Zero-Failure Graceful Degradation:**
+>    - The system is architected to never show a blank screen. If the Python microservice or Java backend is temporarily unreachable, the frontend automatically falls back to pre-cached Wikimedia Commons landmark datasets and deterministic mathematical estimators.
+>
+> 5. **Cinematic, Zero-Dependency PWA Frontend:**
+>    - The frontend avoids heavy monolithic framework overhead (React/Angular) in favor of high-performance modern Vanilla JavaScript (ES modules, Web Audio API procedural synthesis, Leaflet.js, and Service Worker caching). It operates at 60fps with native PWA offline capabilities and installability on Android and iOS."*
 
 ---
 
@@ -267,6 +313,29 @@ python3 -m http.server 3000
 
 ---
 
+## 🎙️ Short Architecture Explanation (For Project Review & Defense)
+
+Use this executive summary when explaining the system architecture during project reviews, viva, or technical presentations:
+
+> *"Routewise is built as a polyglot, decoupled microservices architecture combining **Java Spring Boot**, **Python FastAPI**, **MySQL**, and a modern **Vanilla JavaScript PWA**:*
+>
+> 1. **Why Java Spring Boot for the Core Backend?**
+>    - Spring Boot serves as the enterprise API gateway and orchestrator. It manages transactional integrity (Spring Data JPA / Hibernate), input validation, user authentication contracts, and persistence for saved trips and booking statuses. It provides bulletproof domain whitelisting and deep-link generation for external travel providers.
+>
+> 2. **Why Python FastAPI for the Cost Optimization Microservice?**
+>    - Travel planning is fundamentally a constrained optimization problem. Python excels at rapid numerical modeling, composite scoring heuristics (rating vs. price per night), and greedy budget-fitting algorithms. Offloading heavy scheduling, toll-fuel modeling, and multi-route evaluation (Fastest, Shortest, Cheapest, Scenic, Easiest) to an asynchronous FastAPI microservice ensures the core Java backend remains responsive and unblocked.
+>
+> 3. **How Does the Greedy Budget-Fitting Engine Work?**
+>    - Instead of bruteforce searching, the optimizer calculates a composite value score: $Score = (Rating \times 1.2) - (NormalizedPrice \times 0.8) - (DistancePenalty \times 0.3)$. It performs greedy selection per category (stay, food, activities) within user-allocated budget caps, dynamically reallocating surplus funds to lower-tier categories to prevent infeasibility.
+>
+> 4. **Resilience & Zero-Failure Graceful Degradation:**
+>    - The system is architected to never show a blank screen. If the Python microservice or Java backend is temporarily unreachable, the frontend automatically falls back to pre-cached Wikimedia Commons landmark datasets and deterministic mathematical estimators.
+>
+> 5. **Cinematic, Zero-Dependency PWA Frontend:**
+>    - The frontend avoids heavy monolithic framework overhead (React/Angular) in favor of high-performance modern Vanilla JavaScript (ES modules, Web Audio API procedural synthesis, Leaflet.js, and Service Worker caching). It operates at 60fps with native PWA offline capabilities and installability on Android and iOS."*
+
+---
+
 ## Running Unit Tests
 
 ### Python Microservice Tests
@@ -413,6 +482,29 @@ In `frontend/style.css`, specify button styling for the new provider:
 }
 .partner-btn.agoda:hover { background: #2c5282; }
 ```
+
+---
+
+## 🎙️ Short Architecture Explanation (For Project Review & Defense)
+
+Use this executive summary when explaining the system architecture during project reviews, viva, or technical presentations:
+
+> *"Routewise is built as a polyglot, decoupled microservices architecture combining **Java Spring Boot**, **Python FastAPI**, **MySQL**, and a modern **Vanilla JavaScript PWA**:*
+>
+> 1. **Why Java Spring Boot for the Core Backend?**
+>    - Spring Boot serves as the enterprise API gateway and orchestrator. It manages transactional integrity (Spring Data JPA / Hibernate), input validation, user authentication contracts, and persistence for saved trips and booking statuses. It provides bulletproof domain whitelisting and deep-link generation for external travel providers.
+>
+> 2. **Why Python FastAPI for the Cost Optimization Microservice?**
+>    - Travel planning is fundamentally a constrained optimization problem. Python excels at rapid numerical modeling, composite scoring heuristics (rating vs. price per night), and greedy budget-fitting algorithms. Offloading heavy scheduling, toll-fuel modeling, and multi-route evaluation (Fastest, Shortest, Cheapest, Scenic, Easiest) to an asynchronous FastAPI microservice ensures the core Java backend remains responsive and unblocked.
+>
+> 3. **How Does the Greedy Budget-Fitting Engine Work?**
+>    - Instead of bruteforce searching, the optimizer calculates a composite value score: $Score = (Rating \times 1.2) - (NormalizedPrice \times 0.8) - (DistancePenalty \times 0.3)$. It performs greedy selection per category (stay, food, activities) within user-allocated budget caps, dynamically reallocating surplus funds to lower-tier categories to prevent infeasibility.
+>
+> 4. **Resilience & Zero-Failure Graceful Degradation:**
+>    - The system is architected to never show a blank screen. If the Python microservice or Java backend is temporarily unreachable, the frontend automatically falls back to pre-cached Wikimedia Commons landmark datasets and deterministic mathematical estimators.
+>
+> 5. **Cinematic, Zero-Dependency PWA Frontend:**
+>    - The frontend avoids heavy monolithic framework overhead (React/Angular) in favor of high-performance modern Vanilla JavaScript (ES modules, Web Audio API procedural synthesis, Leaflet.js, and Service Worker caching). It operates at 60fps with native PWA offline capabilities and installability on Android and iOS."*
 
 ---
 

@@ -32,11 +32,11 @@ export const state = {
   },
 
   cities: [
-    { name: 'Chennai', state: 'Tamil Nadu', code: 'TN', icon: 'building-2' },
-    { name: 'Bengaluru', state: 'Karnataka', code: 'KA', icon: 'trees' },
-    { name: 'Pondicherry', state: 'Puducherry', code: 'PY', icon: 'waves' },
-    { name: 'Madurai', state: 'Tamil Nadu', code: 'TN', icon: 'landmark' },
-    { name: 'Coimbatore', state: 'Tamil Nadu', code: 'TN', icon: 'mountain' }
+    { name: 'Chennai', state: 'Tamil Nadu', code: 'TN', icon: 'building-2', lat: 13.0827, lng: 80.2707 },
+    { name: 'Bengaluru', state: 'Karnataka', code: 'KA', icon: 'trees', lat: 12.9716, lng: 77.5946 },
+    { name: 'Pondicherry', state: 'Puducherry', code: 'PY', icon: 'waves', lat: 11.9416, lng: 79.8083 },
+    { name: 'Madurai', state: 'Tamil Nadu', code: 'TN', icon: 'landmark', lat: 9.9252, lng: 78.1198 },
+    { name: 'Coimbatore', state: 'Tamil Nadu', code: 'TN', icon: 'mountain', lat: 11.0168, lng: 76.9558 }
   ],
 
   // Active Plan & Route Data

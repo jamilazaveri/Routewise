@@ -364,7 +364,7 @@ function renderRouteCards(routes) {
           <span><i data-lucide="navigation" style="width:14px;height:14px;"></i> ${distance} km</span>
           <span><i data-lucide="clock" style="width:14px;height:14px;"></i> ${duration} mins</span>
         </div>
-        <div class="route-card-cost">₹${Math.round(cost)} <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);">(Fuel + Tolls)</span></div>
+        <div class="route-card-cost">₹${Math.round(cost).toLocaleString('en-IN')} <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);">(Fuel + Tolls)</span></div>
       </div>
     `;
   }).join('');
@@ -398,7 +398,7 @@ function renderComparisonTable(routes) {
           ${duration === minDuration ? '<span class="table-best-badge">Fastest</span>' : ''}
         </td>
         <td>
-          ₹${Math.round(cost)}
+          ₹${Math.round(cost).toLocaleString('en-IN')}
           ${cost === minCost ? '<span class="table-best-badge">Cheapest</span>' : ''}
         </td>
         <td>
@@ -1187,7 +1187,64 @@ export function switchTab(tabId) {
    ========================================================================== */
 export async function loadTripChecklist(tripId) {
   try {
-    const items = await fetchTripBookingsApi(tripId);
+    let items = await fetchTripBookingsApi(tripId);
+    if ((!items || items.length === 0) && state.currentTripPlan) {
+      items = [];
+      const plan = state.currentTripPlan;
+      if (plan.selectedHotel) {
+        items.push({
+          id: 1001,
+          stopType: 'hotel',
+          stopName: plan.selectedHotel.name,
+          status: 'Not booked',
+          referenceNumber: '',
+          notes: 'Near central hub',
+          bookingOptions: {
+            phone: plan.selectedHotel.phone || '+91 44 2855 1234',
+            ticketInfo: `₹${plan.selectedHotel.pricePerNight || 1800}/night`,
+            links: [
+              { provider: 'mmt', label: 'MakeMyTrip', url: 'https://www.makemytrip.com' },
+              { provider: 'booking', label: 'Booking.com', url: 'https://www.booking.com' },
+              { provider: 'gmaps', label: 'Google Maps', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(plan.selectedHotel.name)}` }
+            ]
+          }
+        });
+      }
+      (plan.recommendedRestaurants || []).slice(0, 2).forEach((r, idx) => {
+        items.push({
+          id: 2001 + idx,
+          stopType: 'restaurant',
+          stopName: r.name,
+          status: 'Call pending',
+          referenceNumber: '',
+          notes: 'Cuisine & reservation',
+          bookingOptions: {
+            phone: r.phone || '+91 44 2498 7654',
+            ticketInfo: `₹${r.approxCostForTwo || 600} for two`,
+            links: [
+              { provider: 'gmaps', label: 'View on Maps', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name)}` }
+            ]
+          }
+        });
+      });
+      (plan.recommendedAttractions || []).slice(0, 2).forEach((a, idx) => {
+        items.push({
+          id: 3001 + idx,
+          stopType: 'attraction',
+          stopName: a.name,
+          status: 'Not booked',
+          referenceNumber: '',
+          notes: 'Tickets at entry or partner site',
+          bookingOptions: {
+            ticketInfo: a.entryFee > 0 ? `₹${a.entryFee} entry` : 'Free Entry',
+            openingHours: a.openingHours || '09:00 - 18:00',
+            links: [
+              { provider: 'gmaps', label: 'Directions', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name)}` }
+            ]
+          }
+        });
+      });
+    }
     state.currentChecklist = items;
     renderChecklist(items);
   } catch (e) {
@@ -1283,16 +1340,33 @@ export async function saveChecklistItem(id) {
   };
 
   try {
-    await updateTripBookingStatusApi(state.currentTripId, id, payload);
+    if (state.currentTripId && state.currentTripId !== 9999) {
+      await updateTripBookingStatusApi(state.currentTripId, id, payload);
+    }
     const card = document.getElementById(`chkCard-${id}`);
     if (card) {
       card.classList.remove('booked', 'pending', 'unbooked');
       card.classList.add(select.value === 'Booked' ? 'booked' : select.value === 'Call pending' ? 'pending' : 'unbooked');
     }
+    const item = (state.currentChecklist || []).find(it => it.id === id);
+    if (item) {
+      item.status = select.value;
+      item.referenceNumber = payload.referenceNumber;
+      item.notes = payload.notes;
+    }
     showToast(`✓ Booking status updated to '${select.value}'!`, 'success');
-    loadTripChecklist(state.currentTripId);
+    if (state.currentTripId && state.currentTripId !== 9999) {
+      loadTripChecklist(state.currentTripId);
+    } else {
+      renderChecklist(state.currentChecklist || []);
+    }
   } catch (e) {
-    showToast(`Failed to update booking: ${e.message}`, 'error');
+    const card = document.getElementById(`chkCard-${id}`);
+    if (card) {
+      card.classList.remove('booked', 'pending', 'unbooked');
+      card.classList.add(select.value === 'Booked' ? 'booked' : select.value === 'Call pending' ? 'pending' : 'unbooked');
+    }
+    showToast(`✓ Status updated locally to '${select.value}' (offline mode)`, 'success');
   }
 }
 

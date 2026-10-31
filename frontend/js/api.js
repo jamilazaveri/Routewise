@@ -61,6 +61,33 @@ export function generateOfflineEstimatePlan(payload) {
   const sightseeing = Math.round(budgetMax * 0.10);
   const total = accommodation + food + fuel + tolls + sightseeing;
 
+  // Real Landmark lookup from cached Wikimedia database
+  let realAttrs = [];
+  if (typeof window !== 'undefined' && window.ATTRACTION_IMAGES) {
+    const dLower = dest.toLowerCase();
+    realAttrs = Object.values(window.ATTRACTION_IMAGES).filter(a => (a.city || '').toLowerCase().includes(dLower));
+  }
+
+  const attractions = realAttrs.length > 0 ? realAttrs.slice(0, 5).map((a, i) => ({
+    id: i + 1,
+    name: a.name,
+    category: a.category || "Heritage",
+    entryFee: a.entryFee || 0,
+    rating: a.rating || 4.7,
+    latitude: a.lat,
+    longitude: a.lng,
+    bestTimeToVisit: a.bestTime || "Morning & Sunset",
+    openingHours: a.hours || "06:00 - 21:00",
+    description: a.desc
+  })) : [
+    { id: 1, name: `Historic Seaside Promenade`, category: "Beach / Heritage", entryFee: 0, rating: 4.7, bestTimeToVisit: "Sunrise & Evening" },
+    { id: 2, name: `${dest} Royal Temple & Museum`, category: "Culture", entryFee: 50, rating: 4.8, bestTimeToVisit: "Morning 09:00 - 12:00" },
+    { id: 3, name: `Lush Botanical Sanctuary`, category: "Nature", entryFee: 30, rating: 4.5, bestTimeToVisit: "15:00 - 17:30" }
+  ];
+
+  const attr1Name = attractions[0] ? attractions[0].name : "Scenic Promenade";
+  const attr2Name = attractions[1] ? attractions[1].name : "Royal Heritage Temple";
+
   return {
     tripId: 9999,
     tripName: `${days}-Day Journey to ${dest} (Offline Estimate)`,
@@ -90,44 +117,39 @@ export function generateOfflineEstimatePlan(payload) {
       name: `${dest} Heritage Grand Hotel`,
       tier: "Mid-Range",
       pricePerNight: Math.round(accommodation / days),
-      rating: 4.4,
-      address: `Central Promenade, ${dest}`,
-      amenities: "AC, WiFi, Free Breakfast, Swimming Pool",
+      rating: 4.5,
+      address: `Central Heritage Enclave, ${dest}`,
+      amenities: "AC, High-speed WiFi, Complimentary Breakfast, Pool",
       phone: "+91 44 2855 1234"
     },
     recommendedRestaurants: [
-      { id: 1, name: `${dest} Spice Pavilion`, cuisineType: "South Indian", approxCostForTwo: 550, rating: 4.5, phone: "+91 44 2498 7654" },
-      { id: 2, name: "Coastal Flavours Resto", cuisineType: "Chettinad & Seafood", approxCostForTwo: 700, rating: 4.6, phone: "+91 44 2811 4321" },
-      { id: 3, name: "The French Quarter Cafe", cuisineType: "Cafe & Bakery", approxCostForTwo: 450, rating: 4.3, phone: "+91 44 2234 5678" }
+      { id: 1, name: `${dest} Traditional Spice Pavilion`, cuisineType: "Authentic South Indian", approxCostForTwo: 550, rating: 4.6, phone: "+91 44 2498 7654" },
+      { id: 2, name: "Coastal Flavours Resto & Cafe", cuisineType: "Chettinad & Seafood", approxCostForTwo: 700, rating: 4.6, phone: "+91 44 2811 4321" },
+      { id: 3, name: "Heritage Bakehouse & Filter Coffee", cuisineType: "Cafe & Artisan Bakery", approxCostForTwo: 450, rating: 4.4, phone: "+91 44 2234 5678" }
     ],
-    recommendedAttractions: [
-      { id: 1, name: `Historic Seaside Promenade`, category: "Beach / Heritage", entryFee: 0, rating: 4.7, bestTimeToVisit: "Sunrise & Evening" },
-      { id: 2, name: `${dest} Royal Temple & Museum`, category: "Culture", entryFee: 50, rating: 4.8, bestTimeToVisit: "Morning 09:00 - 12:00" },
-      { id: 3, name: `Lush Botanical Sanctuary`, category: "Nature", entryFee: 30, rating: 4.5, bestTimeToVisit: "15:00 - 17:30" }
-    ],
+    recommendedAttractions: attractions,
     itinerary: [
       {
         dayNumber: 1,
-        dateLabel: "Day 1: Arrival & Coastal Discovery",
+        dateLabel: "Day 1: Arrival & Historic Coastal Exploration",
         dayTotalCost: Math.round(total / days),
         items: [
-          { id: 101, title: `Journey from ${start} to ${dest}`, startTime: "07:00:00", durationMinutes: 240, description: "Scenic highway drive with coffee breaks.", itemType: "travel" },
-          { id: 102, title: `Check-in at ${dest} Heritage Grand`, startTime: "12:00:00", durationMinutes: 60, description: "Relax and unpack.", itemType: "hotel_checkin" },
-          { id: 103, title: `Lunch at ${dest} Spice Pavilion`, startTime: "13:00:00", durationMinutes: 60, description: "Traditional thali and local delicacies.", itemType: "meal" },
-          { id: 104, title: `Historic Seaside Promenade`, startTime: "16:00:00", durationMinutes: 120, description: "Walk along the coastline.", itemType: "attraction" },
-          { id: 105, title: `Dinner at Coastal Flavours Resto`, startTime: "20:00:00", durationMinutes: 90, description: "Candlelit seafood dinner.", itemType: "meal" }
+          { id: 101, title: `Road Journey from ${start} to ${dest}`, startTime: "07:00:00", durationMinutes: 240, description: "Scenic highway drive with coffee breaks.", itemType: "travel" },
+          { id: 102, title: `Check-in at ${dest} Heritage Grand Hotel`, startTime: "12:00:00", durationMinutes: 60, description: "Unpack, refresh, and settle in.", itemType: "hotel_checkin" },
+          { id: 103, title: `Lunch at ${dest} Traditional Spice Pavilion`, startTime: "13:00:00", durationMinutes: 60, description: "Traditional plantain-leaf feast.", itemType: "meal" },
+          { id: 104, title: attr1Name, startTime: "16:00:00", durationMinutes: 120, description: "Explore iconic architecture and scenic pathways.", itemType: "attraction" },
+          { id: 105, title: `Dinner at Coastal Flavours Resto & Cafe`, startTime: "20:00:00", durationMinutes: 90, description: "Regional specialties and fresh catch.", itemType: "meal" }
         ]
       },
       {
         dayNumber: 2,
-        dateLabel: "Day 2: Heritage Landmarks & Culture",
+        dateLabel: "Day 2: Cultural Landmarks & Scenic Return",
         dayTotalCost: Math.round(total / days),
         items: [
-          { id: 201, title: "Breakfast & Fresh Filter Coffee", startTime: "08:30:00", durationMinutes: 45, description: "Crisp dosas and filter kaapi.", itemType: "meal" },
-          { id: 202, title: `${dest} Royal Temple & Museum`, startTime: "09:45:00", durationMinutes: 120, description: "Architectural wonders and temple corridors.", itemType: "attraction" },
-          { id: 203, title: "Afternoon Cafe Break", startTime: "13:00:00", durationMinutes: 60, description: "Artisan pastries and cool refreshments.", itemType: "meal" },
-          { id: 204, title: `Lush Botanical Sanctuary`, startTime: "15:00:00", durationMinutes: 90, description: "Shaded exotic plant walkways.", itemType: "attraction" },
-          { id: 205, title: `Return Journey to ${start}`, startTime: "17:30:00", durationMinutes: 240, description: "Conclude road trip with cherished memories.", itemType: "travel" }
+          { id: 201, title: "Breakfast & Fresh Filter Kaapi", startTime: "08:30:00", durationMinutes: 45, description: "Ghee roast dosas and South Indian filter coffee.", itemType: "meal" },
+          { id: 202, title: attr2Name, startTime: "09:45:00", durationMinutes: 120, description: "Cultural immersion and photography.", itemType: "attraction" },
+          { id: 203, title: "Afternoon Cafe Break", startTime: "13:00:00", durationMinutes: 60, description: "Light artisan bites and fresh coolers.", itemType: "meal" },
+          { id: 204, title: `Return Journey to ${start}`, startTime: "16:30:00", durationMinutes: 240, description: "Comfortable drive back concluding the expedition.", itemType: "travel" }
         ]
       }
     ]
