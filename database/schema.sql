@@ -3,13 +3,19 @@
 -- Database Schema Definition (MySQL 8.0+ / 9.0+)
 -- =======================================================
 
+-- Safe for existing cloud databases (e.g. TiDB Serverless, Aiven MySQL)
 CREATE DATABASE IF NOT EXISTS routewise_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 USE routewise_db;
 
+-- Disable FK checks during clean recreation
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Drop dependent tables first
+DROP TABLE IF EXISTS trip_bookings;
+DROP TABLE IF EXISTS booking_links;
 DROP TABLE IF EXISTS route_legs;
 DROP TABLE IF EXISTS route_options;
 DROP TABLE IF EXISTS route_segments;
@@ -20,6 +26,8 @@ DROP TABLE IF EXISTS restaurants;
 DROP TABLE IF EXISTS hotels;
 DROP TABLE IF EXISTS attractions;
 DROP TABLE IF EXISTS cities;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1. Cities Table
 CREATE TABLE cities (

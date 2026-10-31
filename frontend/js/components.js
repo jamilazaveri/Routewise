@@ -5,6 +5,7 @@
  */
 
 import { state } from './state.js';
+import { API_BASE } from './config.js';
 import { 
   fetchRouteOptionsApi, 
   fetchRouteDetailsApi, 
@@ -420,7 +421,7 @@ export async function selectRouteStyle(type) {
   let routeDetail = null;
   if (state.currentTripId) {
     try {
-      const res = await fetch(`http://localhost:8080/api/trips/${state.currentTripId}/route/${type}`);
+      const res = await fetch(`${API_BASE}/trips/${state.currentTripId}/route/${type}`);
       if (res.ok) {
         routeDetail = await res.json();
       }
@@ -830,12 +831,12 @@ export async function loadAndRenderStayCards(planData) {
   let hotels = [];
 
   try {
-    const citiesRes = await fetch('http://localhost:8080/api/cities');
+    const citiesRes = await fetch(`${API_BASE}/cities`);
     if (citiesRes.ok) {
       const cities = await citiesRes.json();
       const match = cities.find(c => c.name.toLowerCase() === destination.toLowerCase());
       if (match) {
-        const hotelsRes = await fetch(`http://localhost:8080/api/hotels?cityId=${match.id}`);
+        const hotelsRes = await fetch(`${API_BASE}/hotels?cityId=${match.id}`);
         if (hotelsRes.ok) {
           hotels = await hotelsRes.json();
         }
@@ -1117,7 +1118,7 @@ window.deleteTripRecord = async (tripId, event) => {
 
 window.loadSavedTripById = async (tripId) => {
   try {
-    const res = await fetch(`http://localhost:8080/api/trips/${tripId}`);
+    const res = await fetch(`${API_BASE}/trips/${tripId}`);
     if (res.ok) {
       const trip = await res.json();
       renderTripPlan(trip);

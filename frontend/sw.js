@@ -1,4 +1,4 @@
-const CACHE_NAME = 'routewise-cache-v1.0';
+const CACHE_NAME = 'routewise-cache-v2.0';
 
 const STATIC_ASSETS = [
   './',
@@ -11,13 +11,15 @@ const STATIC_ASSETS = [
   './css/results.css?v=3.2',
   './css/responsive.css?v=3.2',
   './css/immersive.css?v=1.0',
+  './css/buttons.css?v=1.0',
+  './js/config.js',
   './js/state.js',
   './js/api.js',
   './js/wizard.js',
   './js/attraction_images.data.js?v=4.2',
-  './js/components.js?v=4.2',
+  './js/components.js?v=4.3',
   './js/immersive.js?v=1.0',
-  './js/app.js?v=4.2',
+  './js/app.js?v=4.3',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -50,10 +52,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first for API requests
-  if (url.pathname.includes('/api/')) {
+  // Always network-first for API requests, health checks, and config.js (prevent serving stale API configuration)
+  if (url.pathname.includes('/api/') || url.pathname.includes('/health') || url.pathname.endsWith('config.js')) {
     event.respondWith(
-      fetch(event.request).catch(() => {
+      fetch(event.request, { cache: 'no-cache' }).catch(() => {
         return caches.match(event.request);
       })
     );

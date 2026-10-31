@@ -4,8 +4,8 @@
  * robust network error handling, and offline estimate fallbacks.
  */
 
-export const API_BASE = "http://localhost:8080/api";
-export const PYTHON_API = "http://localhost:8000";
+import { API_BASE, API_BASE_URL, PYTHON_API, PYTHON_SERVICE_URL } from './config.js';
+export { API_BASE, API_BASE_URL, PYTHON_API, PYTHON_SERVICE_URL };
 
 // In-Memory API Response Cache
 const apiCache = new Map();
@@ -24,17 +24,29 @@ function setCached(key, data) {
   apiCache.set(key, { data, timestamp: Date.now() });
 }
 
+export function pingServicesOnLoad() {
+  try {
+    fetch(`${API_BASE_URL}/health`, { mode: 'cors' }).catch(() => {});
+    fetch(`${PYTHON_SERVICE_URL}/health`, { mode: 'cors' }).catch(() => {});
+  } catch (e) {}
+}
+
 export async function checkServicesHealth() {
   const result = { backend: false, python: false };
   try {
-    const res = await fetch(`${API_BASE}/cities`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${API_BASE_URL}/health`, { signal: AbortSignal.timeout(4000) });
     result.backend = res.ok;
   } catch (e) {
-    result.backend = false;
+    try {
+      const resFallback = await fetch(`${API_BASE}/cities`, { signal: AbortSignal.timeout(3000) });
+      result.backend = resFallback.ok;
+    } catch (e2) {
+      result.backend = false;
+    }
   }
 
   try {
-    const res = await fetch(`${PYTHON_API}/health`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${PYTHON_SERVICE_URL}/health`, { signal: AbortSignal.timeout(4000) });
     result.python = res.ok;
   } catch (e) {
     result.python = false;
@@ -156,22 +168,60 @@ export function generateOfflineEstimatePlan(payload) {
   };
 }
 
-export async function planTripApi(payload) {
-  try {
-    const res = await fetch(`${API_BASE}/trips/plan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
+export async function planTripApi(payload, onProgress) {
+  const startTime = Date.now();
+  const maxWaitMs = 60000; // Retry up to 60 seconds for Render free tier cold-start
+  let attempt = 0;
+
+  while (Date.now() - startTime < maxWaitMs) {
+    attempt++;
+    const elapsedSec = Math.round((Date.now() - startTime) / 1000);
+    if (elapsedSec >= 4 && onProgress) {
+      onProgress({ isColdStarting: true, elapsedSeconds: elapsedSec });
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 18000); // 18s per attempt
+
+      const res = await fetch(`${API_BASE}/trips/plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        return await res.json();
+      }
+
+      // If server returned 502/503 (Render waking up gateway error), wait and retry
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        console.warn(`Render server waking up (HTTP ${res.status}), retrying in 2.5s...`);
+        await new Promise(r => setTimeout(r, 2500));
+        continue;
+      }
+
       const errData = await res.json().catch(() => ({ message: "Server error" }));
       throw new Error(errData.message || `Failed with status ${res.status}`);
+    } catch (err) {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      if (elapsed >= 55) {
+        console.warn("Server cold start exceeded 55s, switching to instant offline estimate:", err.message);
+        break;
+      }
+      if (err.name === 'AbortError' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        console.warn(`Attempt ${attempt} connection pending (${elapsed}s elapsed), retrying...`);
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+      throw err;
     }
-    return await res.json();
-  } catch (err) {
-    console.warn("Backend unavailable for planTripApi, providing estimate fallback:", err.message);
-    return generateOfflineEstimatePlan(payload);
   }
+
+  // Graceful fallback if cloud service is cold or unreachable
+  return generateOfflineEstimatePlan(payload);
 }
 
 export async function reallocateBudgetApi(payload) {

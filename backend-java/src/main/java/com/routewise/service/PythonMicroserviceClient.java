@@ -123,10 +123,24 @@ public class PythonMicroserviceClient {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
             log.info("Dispatching optimization request to Python Microservice: {}", endpoint);
-            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return parseMicroserviceResponse(response.getBody(), request, route);
+            int maxAttempts = 3;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
+                    if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                        return parseMicroserviceResponse(response.getBody(), request, route);
+                    }
+                } catch (Exception ex) {
+                    log.warn("Attempt {}/{} to Python microservice failed ({}): {}", attempt, maxAttempts, endpoint, ex.getMessage());
+                    if (attempt < maxAttempts) {
+                        try {
+                            Thread.sleep(1500);
+                        } catch (InterruptedException ignored) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
             }
         } catch (Exception ex) {
             log.warn("Python microservice call failed ({}), activating fallback optimization engine: {}", endpoint, ex.getMessage());
@@ -418,17 +432,32 @@ public class PythonMicroserviceClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<MultiRoutePlanRequest> entity = new HttpEntity<>(request, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    endpoint,
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            );
+            int maxAttempts = 3;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    ResponseEntity<String> response = restTemplate.exchange(
+                            endpoint,
+                            HttpMethod.POST,
+                            entity,
+                            String.class
+                    );
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                MultiRoutePlanResponse result = objectMapper.readValue(response.getBody(), MultiRoutePlanResponse.class);
-                result.setTripId(request.getTripId());
-                return result;
+                    if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                        MultiRoutePlanResponse result = objectMapper.readValue(response.getBody(), MultiRoutePlanResponse.class);
+                        result.setTripId(request.getTripId());
+                        return result;
+                    }
+                } catch (Exception ex) {
+                    log.warn("Attempt {}/{} to Python /plan-routes failed: {}", attempt, maxAttempts, ex.getMessage());
+                    if (attempt < maxAttempts) {
+                        try {
+                            Thread.sleep(1500);
+                        } catch (InterruptedException ignored) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
             }
         } catch (Exception ex) {
             log.warn("FastAPI microservice /plan-routes call failed: {}. Generating local fallback routes.", ex.getMessage());

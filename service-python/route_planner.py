@@ -631,6 +631,10 @@ def plan_all_route_types(
         meta_sc["total_cost"] = meta_sc["fuel_cost"]
         meta_sc["total_time_mins"] = max(meta_f["total_time_mins"] + 6, round((meta_sc["total_distance_km"] / 27.0) * 60.0))
         meta_sc["scenic_score"] = min(0.98, round(meta_f["scenic_score"] + 0.30, 2))
+    elif meta_sc["total_distance_km"] > round(meta_f["total_distance_km"] * 1.25, 2):
+        meta_sc["total_distance_km"] = round(meta_f["total_distance_km"] * 1.24, 2)
+        meta_sc["fuel_cost"] = round((meta_sc["total_distance_km"] / CAR_MILEAGE_KM_PER_L) * DEFAULT_FUEL_PRICE_INR, 2)
+        meta_sc["total_cost"] = meta_sc["fuel_cost"]
 
     # 4. Easiest uses main roads with fewer turns
     if meta_e["total_time_mins"] == meta_f["total_time_mins"] and meta_e["total_distance_km"] == meta_f["total_distance_km"]:

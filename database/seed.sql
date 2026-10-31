@@ -8,6 +8,8 @@
 USE routewise_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE trip_bookings;
+TRUNCATE TABLE booking_links;
 TRUNCATE TABLE route_segments;
 TRUNCATE TABLE route_legs;
 TRUNCATE TABLE route_options;

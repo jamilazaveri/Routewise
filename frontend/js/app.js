@@ -5,7 +5,7 @@
  */
 
 import { state, applyTheme } from './state.js';
-import { checkServicesHealth, planTripApi, clearTripHistoryApi } from './api.js';
+import { checkServicesHealth, planTripApi, clearTripHistoryApi, pingServicesOnLoad } from './api.js';
 import { initWizard, goToStep, setTotalBudgetValue } from './wizard.js';
 import { 
   renderTripPlan, 
@@ -33,8 +33,10 @@ window.handleCopySummaryClick = handleCopySummaryClick;
 window.setChecklistStatus = setChecklistStatus;
 window.setTotalBudgetValue = setTotalBudgetValue;
 window.handleWhatIfBudgetChange = handleWhatIfBudgetChange;
+window.loadTripForCity = loadTripForCity;
+window.loadDemoTrip = loadDemoTrip;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   // 1. Initialize Theme
   applyTheme(state.theme);
   const themeToggle = document.getElementById('themeToggleBtn');
@@ -72,12 +74,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Setup Mobile Bottom Navigation
   setupBottomNav();
 
-  // 5. Check Microservices & Database Health
+  // 5. Check Microservices & Database Health & Ping early on cold start
   checkBackendHealth();
+  pingServicesOnLoad();
 
   // 6. Initialize Lucide Icons
   if (window.lucide) window.lucide.createIcons();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 /* ==========================================================================
    TRIP GENERATION & PLAYFUL ANIMATED LOADER
@@ -96,21 +105,27 @@ async function handleTripGeneration() {
   const wizardCard = document.getElementById('wizardCard');
   const loader = document.getElementById('generatingScreen');
   const statusPill = document.getElementById('generatingStatusText');
+  const titleEl = document.querySelector('.generating-title');
 
   // Switch to Generating Screen
   if (wizardCard) wizardCard.style.display = 'none';
   if (loader) loader.classList.add('active');
+  if (titleEl) titleEl.textContent = "Crafting Your Travel Experience";
 
   // Cycle status messages
   let msgIdx = 0;
+  let isColdStarting = false;
   if (statusPill) statusPill.textContent = STATUS_MESSAGES[0];
   statusCycleInterval = setInterval(() => {
+    if (isColdStarting) return; // Don't overwrite cold start notice
     msgIdx = (msgIdx + 1) % STATUS_MESSAGES.length;
     if (statusPill) {
       statusPill.style.opacity = 0;
       setTimeout(() => {
-        statusPill.textContent = STATUS_MESSAGES[msgIdx];
-        statusPill.style.opacity = 1;
+        if (!isColdStarting) {
+          statusPill.textContent = STATUS_MESSAGES[msgIdx];
+          statusPill.style.opacity = 1;
+        }
       }, 200);
     }
   }, 1600);
@@ -130,12 +145,22 @@ async function handleTripGeneration() {
   };
 
   try {
-    const data = await planTripApi(payload);
+    const data = await planTripApi(payload, (progress) => {
+      if (progress.isColdStarting) {
+        isColdStarting = true;
+        if (titleEl) titleEl.textContent = "Waking Up Cloud Servers...";
+        if (statusPill) {
+          statusPill.style.opacity = 1;
+          statusPill.textContent = `Waking up the servers, this takes up to a minute on the free tier... (${progress.elapsedSeconds}s)`;
+        }
+      }
+    });
     clearInterval(statusCycleInterval);
 
     setTimeout(() => {
       if (loader) loader.classList.remove('active');
       if (wizardCard) wizardCard.style.display = 'block';
+      if (titleEl) titleEl.textContent = "Crafting Your Travel Experience";
       renderTripPlan(data);
       showToast("✨ Itinerary & Route Plan generated successfully!", "success");
     }, 1200);
@@ -144,6 +169,7 @@ async function handleTripGeneration() {
     clearInterval(statusCycleInterval);
     if (loader) loader.classList.remove('active');
     if (wizardCard) wizardCard.style.display = 'block';
+    if (titleEl) titleEl.textContent = "Crafting Your Travel Experience";
     showToast(`Error: ${err.message}`, "error");
   }
 }
@@ -176,9 +202,6 @@ export async function loadDemoTrip() {
   await loadTripForCity("Chennai");
   switchTab('routesTab');
 }
-
-window.loadTripForCity = loadTripForCity;
-window.loadDemoTrip = loadDemoTrip;
 
 async function clearAllTripHistory() {
   if (!confirm("Are you sure you want to clear all saved trip history?")) return;

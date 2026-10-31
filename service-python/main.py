@@ -3,6 +3,7 @@ Routewise Python Microservice: Cost Estimation, Scoring/Ranking, and Budget Fitt
 FastAPI Application running on port 8000.
 """
 
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
@@ -27,10 +28,20 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Parse CORS Allowed Origins
+allowed_origins_env = os.environ.get("ALLOWED_ORIGINS", "*")
+if allowed_origins_env == "*" or not allowed_origins_env.strip():
+    allowed_origins = ["*"]
+else:
+    allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+    for local_origin in ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080"]:
+        if local_origin not in allowed_origins:
+            allowed_origins.append(local_origin)
+
 # Enable CORS for Spring Boot and web frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +51,7 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
     return {
-        "status": "healthy",
+        "status": "UP",
         "service": "routewise-python-microservice",
         "version": "1.0.0"
     }
@@ -208,4 +219,5 @@ def plan_routes_endpoint(req: MultiRoutePlanRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)

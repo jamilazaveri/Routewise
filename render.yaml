@@ -1,0 +1,49 @@
+# ==============================================================================
+# Routewise Render Blueprint (render.yaml)
+# Defines free web services for Python FastAPI and Java Spring Boot
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Python FastAPI Microservice (Route Optimization & Cost Engine)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: routewise-service-python
+    runtime: docker
+    dockerfilePath: service-python/Dockerfile
+    dockerContext: service-python
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # 2. Java Spring Boot Backend Service (REST API & Database Layer)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: routewise-backend-java
+    runtime: docker
+    dockerfilePath: backend-java/Dockerfile
+    dockerContext: backend-java
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: PYTHON_SERVICE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
