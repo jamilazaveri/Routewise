@@ -455,7 +455,7 @@
           </div>
         </div>
 
-        <!-- What-If Live Budget Slider -->
+        <!-- What-If Live Budget Slider & Weather Widget -->
         <div class="summary-whatif-box">
           <div class="whatif-header">
             <span>What-If Budget Slider</span>
@@ -463,6 +463,12 @@
           </div>
           <input type="range" class="whatif-slider" id="whatifBudgetSlider" min="9000" max="36000" step="500" value="18000" oninput="window.handleWhatIfBudgetChange(this.value)" />
           <p class="whatif-caption">Drag slider to live-simulate budget elasticity and recommendations</p>
+
+          <!-- Live Weather Forecast Pill (Open-Meteo) -->
+          <div class="weather-forecast-pill" id="destinationWeatherPill">
+            <i data-lucide="cloud-sun" style="width:16px;height:16px;color:#F59E0B;"></i>
+            <span id="weatherText">Checking destination weather...</span>
+          </div>
         </div>
 
       </div>
@@ -644,6 +650,11 @@
 
     </section>
 
+    <!-- App Disclaimer Footer -->
+    <footer class="app-disclaimer-footer">
+      <p><i data-lucide="info" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Demo data based on public information. Prices and timings are estimates; please confirm before travelling.</p>
+    </footer>
+
   </main>
 
   <!-- Mobile Bottom Navigation Bar -->
@@ -670,10 +681,71 @@
     </button>
   </nav>
 
+  <!-- Immersive Full-Screen Attraction Modal -->
+  <div class="immersive-modal-backdrop" id="attractionModal" onclick="if(event.target===this) window.closeAttractionModal()">
+    <div class="immersive-modal-card">
+      <button type="button" class="modal-close-btn" onclick="window.closeAttractionModal()" aria-label="Close dialog">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="immersive-modal-hero">
+        <img src="" alt="" class="immersive-modal-img ken-burns" id="modalHeroImg" />
+        <div class="immersive-modal-overlay"></div>
+        <span class="modal-open-status-pill" id="modalOpenStatusPill">Open now</span>
+        <div class="modal-photo-credit" id="modalPhotoCredit">Photo: Wikimedia Commons, CC BY-SA</div>
+      </div>
+
+      <div class="immersive-modal-body">
+        <div class="modal-title-row">
+          <div>
+            <h2 class="modal-title" id="modalTitle">Attraction Name</h2>
+            <div class="modal-category-city" id="modalCategoryCity">Category • City</div>
+          </div>
+          <div class="modal-ticket-badge" id="modalTicketBadge">Free Entry</div>
+        </div>
+
+        <p class="modal-desc" id="modalDesc">Detailed historical background and significance...</p>
+
+        <div class="modal-meta-grid">
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="clock"></i> Opening Hours</span>
+            <span class="meta-val" id="modalHours">09:00 AM - 06:00 PM</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="hourglass"></i> Typical Duration</span>
+            <span class="meta-val" id="modalDuration">90 mins</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="sun"></i> Best Time to Visit</span>
+            <span class="meta-val" id="modalBestTime">Morning or Sunset</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="ticket"></i> Ticket Info</span>
+            <span class="meta-val" id="modalTicketInfo">Entry at Gate / Online</span>
+          </div>
+        </div>
+
+        <div class="modal-actions-toolbar">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="partner-btn mmt" id="modalBookBtn">
+            <i data-lucide="external-link"></i> Book Tickets
+          </a>
+          <a href="#" class="partner-btn call" id="modalCallBtn">
+            <i data-lucide="phone"></i> Call
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps" id="modalDirectionsBtn">
+            <i data-lucide="navigation"></i> Directions
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Global Toast Notification -->
   <div class="app-toast" id="appToast">Notification</div>
 
   <!-- Main ES Module Script with Cache-Busting -->
-  <script type="module" src="js/app.js?v=3.4"></script>
+  <!-- Real Wikimedia Commons Photos & Descriptions Cache -->
+  <script src="js/attraction_images.data.js?v=4.2"></script>
+  <script type="module" src="js/app.js?v=4.2"></script>
 </body>
 </html>

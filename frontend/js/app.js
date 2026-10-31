@@ -17,9 +17,10 @@ import {
   showToast,
   handleWhatIfBudgetChange,
   loadSavedTrips
-} from './components.js?v=3.4';
+} from './components.js?v=4.2';
 
 // Expose necessary functions to window for HTML event handlers
+window.renderTripPlan = renderTripPlan;
 window.goToStep = goToStep;
 window.switchTab = switchTab;
 window.selectRouteStyle = selectRouteStyle;
@@ -28,8 +29,6 @@ window.copyToClipboard = copyToClipboard;
 window.copyTripTextSummary = copyTripTextSummary;
 window.setTotalBudgetValue = setTotalBudgetValue;
 window.handleWhatIfBudgetChange = handleWhatIfBudgetChange;
-window.loadDemoTrip = loadDemoTrip;
-window.clearAllTripHistory = clearAllTripHistory;
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Theme
@@ -145,15 +144,15 @@ async function handleTripGeneration() {
   }
 }
 
-export async function loadDemoTrip() {
+export async function loadTripForCity(destCity) {
   const payload = {
-    startCity: "Bengaluru",
-    destinationCity: "Chennai",
+    startCity: destCity === 'Chennai' ? 'Bengaluru' : 'Chennai',
+    destinationCity: destCity,
     numDays: 2,
     numTravellers: 2,
     transportMode: "car",
-    totalBudgetMin: 8000,
-    totalBudgetMax: 18000,
+    totalBudgetMin: 10000,
+    totalBudgetMax: 20000,
     shareAccommodation: 35,
     shareFood: 25,
     shareTransport: 20,
@@ -163,11 +162,18 @@ export async function loadDemoTrip() {
   try {
     const data = await planTripApi(payload);
     renderTripPlan(data);
-    switchTab('routesTab');
+    switchTab('placesTab');
   } catch (e) {
-    console.error("Demo trip loading failed:", e);
+    console.error("Trip loading failed for " + destCity, e);
   }
 }
+
+export async function loadDemoTrip() {
+  return loadTripForCity("Chennai");
+}
+
+window.loadTripForCity = loadTripForCity;
+window.loadDemoTrip = loadDemoTrip;
 
 async function clearAllTripHistory() {
   if (!confirm("Are you sure you want to clear all saved trip history?")) return;
@@ -177,6 +183,7 @@ async function clearAllTripHistory() {
     loadSavedTrips();
   }
 }
+window.clearAllTripHistory = clearAllTripHistory;
 
 /* ==========================================================================
    MOBILE BOTTOM NAVIGATION

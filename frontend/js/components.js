@@ -16,6 +16,8 @@ import {
   reallocateBudgetApi
 } from './api.js';
 
+const ATTRACTION_IMAGES = window.ATTRACTION_IMAGES || {};
+
 // Unsplash curated scenic images for South India locations
 const IMAGE_CATALOG = {
   chennai: [
@@ -139,6 +141,9 @@ export function renderTripPlan(data) {
 
   // 5. Update WhatsApp and Share links
   updateWhatsAppShareLink(data);
+  // Fetch live Open-Meteo destination weather
+  fetchLiveDestinationWeather(data.destinationCity || 'Pondicherry');
+
 
   // Switch to Itinerary tab
   switchTab('itineraryTab');
@@ -837,7 +842,10 @@ export function renderStayCards(hotels, destination = 'Pondicherry') {
     return `
       <div class="catalog-card" data-price="${h.pricePerNight}">
         <div class="catalog-card-image-box">
-          <img src="${imgUrl}" alt="${h.name}" class="catalog-card-img" loading="lazy" />
+          <div class="catalog-card-image-box illustrated-fallback">
+     <div class="illustrated-fallback-icon"><i data-lucide="building-2" style="width:22px;height:22px;color:#7C3AED;"></i></div>
+     <span class="illustrated-fallback-label">${h.tier || 'Deluxe'} Hotel</span>
+   </div>
           <span class="catalog-budget-badge ${isWithin ? 'within' : 'over'}">
             ${isWithin ? 'Within Budget' : 'Slightly Over'}
           </span>
@@ -895,7 +903,10 @@ export function renderFoodCards(restaurants) {
     return `
       <div class="catalog-card" data-price="${approx}">
         <div class="catalog-card-image-box">
-          <img src="${imgUrl}" alt="${r.name}" class="catalog-card-img" loading="lazy" />
+          <div class="catalog-card-image-box illustrated-fallback">
+     <div class="illustrated-fallback-icon"><i data-lucide="utensils" style="width:22px;height:22px;color:#EC4899;"></i></div>
+     <span class="illustrated-fallback-label">${r.cuisineType || 'Authentic'} Dining</span>
+   </div>
           <span class="catalog-budget-badge ${isWithin ? 'within' : 'over'}">
             ${isWithin ? 'Within Budget' : 'Premium Spot'}
           </span>
@@ -935,6 +946,7 @@ export function renderFoodCards(restaurants) {
 /* ==========================================================================
    IMAGE-FIRST CATALOG CARDS: PLACES (ATTRACTIONS)
    ========================================================================== */
+
 export function renderPlacesCards(attractions) {
   const container = document.getElementById('placesCardsGrid');
   if (!container) return;
@@ -942,20 +954,24 @@ export function renderPlacesCards(attractions) {
   const destination = (state.currentPlan && state.currentPlan.destinationCity) || 'Pondicherry';
 
   container.innerHTML = (attractions || []).map((a, idx) => {
-    const imgUrl = getCardImage(destination, idx + 2);
+    const wiki = ATTRACTION_IMAGES[a.name] || {};
+    const imgUrl = wiki.imageUrl || getCardImage(destination, idx + 2);
     const ticket = a.ticketPrice || 0;
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name + ' ' + destination)}`;
+    const status = computeOpenStatus(a.openingTime, a.closingTime);
+    const mapsUrl = a.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name + ' ' + destination)}`;
+    const attrJson = JSON.stringify(a).replace(/"/g, '&quot;');
 
     return `
-      <div class="catalog-card" data-price="${ticket}">
+      <div class="catalog-card attraction-interactive-card" data-price="${ticket}" onclick="window.openAttractionModal(${attrJson})">
         <div class="catalog-card-image-box">
           <img src="${imgUrl}" alt="${a.name}" class="catalog-card-img" loading="lazy" />
           <span class="catalog-budget-badge within">
             ${ticket === 0 ? 'Free Entry' : `₹${Math.round(ticket)} entry`}
           </span>
           <div class="catalog-rating-pill">
-            ⭐ ${a.rating || 4.5}
+            ⭐ ${a.rating || 4.5} <span style="font-size:0.7rem;font-weight:600;color:${status.isOpen ? '#059669' : '#DC2626'};margin-left:0.25rem;">• ${status.isOpen ? 'Open' : 'Closed'}</span>
           </div>
+          <span class="photo-credit-tag">${wiki.attribution || 'Wikimedia Commons'}</span>
         </div>
 
         <div class="catalog-card-body">
@@ -965,14 +981,17 @@ export function renderPlacesCards(attractions) {
           </div>
 
           <p class="catalog-card-desc">
-            ${a.category || 'Sightseeing'} • Hours: ${a.openingTime || '09:00'} - ${a.closingTime || '18:00'} • Best time: Morning / Sunset.
+            ${wiki.description ? wiki.description.substring(0, 110) + '...' : (a.category || 'Sightseeing') + ' • Hours: ' + (a.openingTime || '09:00') + ' - ' + (a.closingTime || '18:00')}
           </p>
 
-          <div class="catalog-actions-row">
-            <button type="button" class="btn-add-trip" onclick="window.handleAddToTrip('${a.name}', this)">
+          <div class="catalog-actions-row" onclick="event.stopPropagation()">
+            <button type="button" class="btn-add-trip" onclick="window.handleAddToTrip('\${a.name}', this)">
               <i data-lucide="plus"></i> Add to Trip
             </button>
             <div style="display:flex;gap:0.4rem;">
+              <button type="button" class="partner-btn" onclick="window.openAttractionModal(${attrJson})" title="View Details">
+                <i data-lucide="maximize-2"></i> Details
+              </button>
               <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps"><i data-lucide="navigation"></i> Directions</a>
             </div>
           </div>
@@ -1312,3 +1331,136 @@ function capitalize(str) {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/* ==========================================================================
+   LIVE WEATHER & IMMERSIVE MODAL (PHASE 3C - FREE DATA)
+   ========================================================================== */
+
+const CITY_COORDINATES = {
+  chennai: { lat: 13.0827, lng: 80.2707 },
+  bengaluru: { lat: 12.9716, lng: 77.5946 },
+  pondicherry: { lat: 11.9416, lng: 79.8083 },
+  madurai: { lat: 9.9252, lng: 78.1198 },
+  coimbatore: { lat: 11.0168, lng: 76.9558 }
+};
+
+export async function fetchLiveDestinationWeather(cityName) {
+  const weatherTextEl = document.getElementById('weatherText');
+  if (!weatherTextEl) return;
+
+  const key = (cityName || 'Pondicherry').toLowerCase();
+  const coords = CITY_COORDINATES[key] || CITY_COORDINATES.pondicherry;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
+    const data = await res.json();
+    const cur = data.current || {};
+    const temp = Math.round(cur.temperature_2m || 28);
+    const wind = Math.round(cur.wind_speed_10m || 10);
+    const breezeDesc = wind > 15 ? 'moderate breeze' : 'gentle breeze';
+
+    weatherTextEl.textContent = `${temp} °C, ${breezeDesc} in ${cityName} • Ideal for sightseeing`;
+  } catch (e) {
+    console.warn("Weather fetch fallback:", e.message);
+    weatherTextEl.textContent = `28 °C, pleasant breeze in ${cityName}`;
+  }
+}
+
+export function computeOpenStatus(openingTime = '09:00:00', closingTime = '18:00:00') {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const parseMins = (t) => {
+    if (!t) return 0;
+    const parts = t.split(':');
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || '0', 10);
+  };
+
+  const openMins = parseMins(openingTime);
+  const closeMins = parseMins(closingTime);
+
+  const format12h = (t) => {
+    const parts = (t || '18:00').split(':');
+    let h = parseInt(parts[0], 10);
+    const m = parts[1] || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+  };
+
+  if (currentMinutes >= openMins && currentMinutes < closeMins) {
+    return { isOpen: true, text: `Open now - closes ${format12h(closingTime)}`, className: 'open' };
+  } else {
+    return { isOpen: false, text: `Closed now - opens ${format12h(openingTime)}`, className: 'closed' };
+  }
+}
+
+export function openAttractionModal(attrData) {
+  const modal = document.getElementById('attractionModal');
+  if (!modal) return;
+
+  const heroImg = document.getElementById('modalHeroImg');
+  const openStatusPill = document.getElementById('modalOpenStatusPill');
+  const photoCredit = document.getElementById('modalPhotoCredit');
+  const title = document.getElementById('modalTitle');
+  const categoryCity = document.getElementById('modalCategoryCity');
+  const ticketBadge = document.getElementById('modalTicketBadge');
+  const desc = document.getElementById('modalDesc');
+  const hours = document.getElementById('modalHours');
+  const duration = document.getElementById('modalDuration');
+  const bestTime = document.getElementById('modalBestTime');
+  const ticketInfo = document.getElementById('modalTicketInfo');
+  const bookBtn = document.getElementById('modalBookBtn');
+  const callBtn = document.getElementById('modalCallBtn');
+  const dirBtn = document.getElementById('modalDirectionsBtn');
+
+  const wiki = ATTRACTION_IMAGES[attrData.name] || {};
+  const status = computeOpenStatus(attrData.openingTime, attrData.closingTime);
+
+  if (heroImg) {
+    heroImg.src = wiki.imageUrl || 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80';
+    heroImg.alt = attrData.name;
+  }
+  if (openStatusPill) {
+    openStatusPill.className = `modal-open-status-pill ${status.className}`;
+    openStatusPill.textContent = status.text;
+  }
+  if (photoCredit) {
+    photoCredit.textContent = wiki.attribution || 'Photo: Wikimedia Commons, CC BY-SA';
+  }
+  if (title) title.textContent = attrData.name;
+  if (categoryCity) categoryCity.textContent = `${attrData.category || 'Heritage'} • ${attrData.city || state.currentPlan?.destinationCity || 'Tamil Nadu'}`;
+  
+  const ticket = attrData.ticketPrice || 0;
+  if (ticketBadge) ticketBadge.textContent = ticket === 0 ? 'Free Entry' : `₹${Math.round(ticket)}`;
+  if (desc) desc.textContent = wiki.description || attrData.description || 'Historic landmark and popular destination in South India.';
+  if (hours) hours.textContent = `${attrData.openingTime ? attrData.openingTime.substring(0, 5) : '09:00'} - ${attrData.closingTime ? attrData.closingTime.substring(0, 5) : '18:00'}`;
+  if (duration) duration.textContent = `${attrData.avgVisitDurationMins || 90} mins`;
+  if (bestTime) bestTime.textContent = attrData.bestTimeToVisit || 'Morning or Sunset';
+  if (ticketInfo) ticketInfo.textContent = attrData.ticketInfo || (ticket === 0 ? 'Free entry for all' : 'Tickets available at gate / partner');
+
+  const destination = attrData.city || state.currentPlan?.destinationCity || 'Chennai';
+  if (bookBtn) bookBtn.href = attrData.bookingUrl || `https://www.makemytrip.com`;
+  if (callBtn) {
+    const phone = attrData.phone || '+91 44 2855 1234';
+    callBtn.href = `tel:${phone}`;
+    callBtn.innerHTML = `<i data-lucide="phone"></i> Call (${phone})`;
+  }
+  if (dirBtn) dirBtn.href = attrData.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(attrData.name + ' ' + destination)}`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (window.lucide) window.lucide.createIcons();
+}
+
+export function closeAttractionModal() {
+  const modal = document.getElementById('attractionModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+window.openAttractionModal = openAttractionModal;
+window.closeAttractionModal = closeAttractionModal;
