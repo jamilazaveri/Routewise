@@ -14,10 +14,12 @@ import {
   saveChecklistItem, 
   copyToClipboard, 
   copyTripTextSummary,
+  handleCopySummaryClick,
+  setChecklistStatus,
   showToast,
   handleWhatIfBudgetChange,
   loadSavedTrips
-} from './components.js?v=4.2';
+} from './components.js?v=4.3';
 
 // Expose necessary functions to window for HTML event handlers
 window.renderTripPlan = renderTripPlan;
@@ -27,6 +29,8 @@ window.selectRouteStyle = selectRouteStyle;
 window.saveChecklistItem = saveChecklistItem;
 window.copyToClipboard = copyToClipboard;
 window.copyTripTextSummary = copyTripTextSummary;
+window.handleCopySummaryClick = handleCopySummaryClick;
+window.setChecklistStatus = setChecklistStatus;
 window.setTotalBudgetValue = setTotalBudgetValue;
 window.handleWhatIfBudgetChange = handleWhatIfBudgetChange;
 

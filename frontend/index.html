@@ -41,6 +41,7 @@
   <link rel="stylesheet" href="css/results.css?v=3.2">
   <link rel="stylesheet" href="css/responsive.css?v=3.2">
   <link rel="stylesheet" href="css/immersive.css?v=1.0">
+  <link rel="stylesheet" href="css/buttons.css?v=1.0">
 </head>
 <body>
 
@@ -96,12 +97,6 @@
           <i data-lucide="map"></i>
           <span>Live Route Map</span>
         </button>
-        <span class="status-pill" id="backendStatusBadge">
-          <span class="status-dot"></span> Java :8080
-        </span>
-        <span class="status-pill" id="pythonStatusBadge">
-          <span class="status-dot"></span> Python :8000
-        </span>
         <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme">
           <i data-lucide="moon"></i>
         </button>
@@ -685,20 +680,20 @@
 
       <!-- Share & Export Bar with Partner Booking Disclaimer -->
       <div class="share-bar-container">
-        <div class="disclaimer-pill">
-          <i data-lucide="info" style="color:#7C3AED;width:16px;height:16px;"></i>
+        <div class="disclaimer-card">
+          <i data-lucide="info"></i>
           <span><strong>Booking Disclaimer:</strong> Prices, availability and schedules are estimates. Final bookings happen directly on partner platforms.</span>
         </div>
 
-        <div class="share-buttons-group">
-          <button type="button" class="share-action-btn" onclick="window.copyTripTextSummary()">
-            <i data-lucide="copy"></i> Copy Summary
+        <div class="share-buttons-row">
+          <button type="button" class="btn btn-secondary" id="btnCopySummary" onclick="window.handleCopySummaryClick(this)">
+            <i data-lucide="copy"></i> <span class="btn-text">Copy Summary</span>
           </button>
-          <a href="#" class="share-action-btn whatsapp" id="whatsappShareLink" target="_blank" rel="noopener noreferrer">
-            <i data-lucide="share-2"></i> WhatsApp Share
+          <a href="#" class="btn btn-whatsapp" id="whatsappShareLink" target="_blank" rel="noopener noreferrer">
+            <i data-lucide="share-2"></i> <span class="btn-text">WhatsApp Share</span>
           </a>
-          <button type="button" class="share-action-btn" onclick="window.print()">
-            <i data-lucide="printer"></i> Printable View
+          <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i data-lucide="printer"></i> <span class="btn-text">Printable View</span>
           </button>
         </div>
       </div>
@@ -930,13 +925,13 @@
         </div>
 
         <div class="modal-actions-toolbar">
-          <a href="#" target="_blank" rel="noopener noreferrer" class="partner-btn mmt" id="modalBookBtn">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" id="modalBookBtn">
             <i data-lucide="external-link"></i> Book Tickets
           </a>
-          <a href="#" class="partner-btn call" id="modalCallBtn">
+          <a href="#" class="btn btn-secondary btn-sm" id="modalCallBtn">
             <i data-lucide="phone"></i> Call
           </a>
-          <a href="#" target="_blank" rel="noopener noreferrer" class="partner-btn gmaps" id="modalDirectionsBtn">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="modalDirectionsBtn">
             <i data-lucide="navigation"></i> Directions
           </a>
         </div>
@@ -964,6 +959,6 @@
   <!-- Real Wikimedia Commons Photos & Descriptions Cache -->
   <script src="js/attraction_images.data.js?v=4.2"></script>
   <script type="module" src="js/immersive.js?v=1.0"></script>
-  <script type="module" src="js/app.js?v=4.2"></script>
+  <script type="module" src="js/app.js?v=4.3"></script>
 </body>
 </html>

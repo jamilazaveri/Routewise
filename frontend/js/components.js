@@ -1165,9 +1165,12 @@ export function switchTab(tabId) {
   tabs.forEach(btn => {
     const isActive = btn.dataset.tab === tabId;
     btn.classList.toggle('active', isActive);
-    if (isActive && indicator) {
-      indicator.style.left = `${btn.offsetLeft}px`;
-      indicator.style.width = `${btn.offsetWidth}px`;
+    if (isActive) {
+      if (indicator) {
+        indicator.style.left = `${btn.offsetLeft}px`;
+        indicator.style.width = `${btn.offsetWidth}px`;
+      }
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   });
 
@@ -1183,14 +1186,37 @@ export function switchTab(tabId) {
 }
 
 /* ==========================================================================
-   BOOKING CHECKLIST COMPONENT
+   BOOKING CHECKLIST COMPONENT & REUSABLE BUTTON ACTIONS
    ========================================================================== */
 export async function loadTripChecklist(tripId) {
   try {
     let items = await fetchTripBookingsApi(tripId);
-    if ((!items || items.length === 0) && state.currentTripPlan) {
+    if ((!items || items.length === 0) && (state.currentPlan || state.currentTripPlan)) {
       items = [];
-      const plan = state.currentTripPlan;
+      const plan = state.currentPlan || state.currentTripPlan;
+      const startCity = plan.startCity || 'Chennai';
+      const destCity = plan.destinationCity || 'Pondicherry';
+      const mode = (plan.transportMode || 'car').toUpperCase();
+
+      // 1. Intercity Transport Stop
+      items.push({
+        id: 999,
+        stopType: 'transport',
+        stopName: `${startCity} to ${destCity} (${mode})`,
+        status: 'Not booked',
+        referenceNumber: '',
+        notes: `RedBus / IRCTC booking for ${plan.numTravellers || 2} travellers`,
+        bookingOptions: {
+          ticketInfo: `Intercity Travel (${mode})`,
+          providerLinks: [
+            { provider: 'redbus', label: 'Book on RedBus', url: `https://www.redbus.in/bus-tickets/${encodeURIComponent(startCity)}-to-${encodeURIComponent(destCity)}` },
+            { provider: 'irctc', label: 'Book on IRCTC', url: 'https://www.irctc.co.in/nget/train-search' },
+            { provider: 'makemytrip', label: 'MakeMyTrip', url: 'https://www.makemytrip.com' }
+          ]
+        }
+      });
+
+      // 2. Hotel Accommodation Stop
       if (plan.selectedHotel) {
         items.push({
           id: 1001,
@@ -1200,16 +1226,19 @@ export async function loadTripChecklist(tripId) {
           referenceNumber: '',
           notes: 'Near central hub',
           bookingOptions: {
+            cityName: destCity,
             phone: plan.selectedHotel.phone || '+91 44 2855 1234',
             ticketInfo: `₹${plan.selectedHotel.pricePerNight || 1800}/night`,
-            links: [
-              { provider: 'mmt', label: 'MakeMyTrip', url: 'https://www.makemytrip.com' },
-              { provider: 'booking', label: 'Booking.com', url: 'https://www.booking.com' },
-              { provider: 'gmaps', label: 'Google Maps', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(plan.selectedHotel.name)}` }
+            providerLinks: [
+              { provider: 'makemytrip', label: 'MakeMyTrip', url: `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(destCity)}&hotelName=${encodeURIComponent(plan.selectedHotel.name)}` },
+              { provider: 'booking.com', label: 'Booking.com', url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(plan.selectedHotel.name + ' ' + destCity)}` },
+              { provider: 'google_maps', label: 'Directions', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(plan.selectedHotel.name + ' ' + destCity)}` }
             ]
           }
         });
       }
+
+      // 3. Restaurants
       (plan.recommendedRestaurants || []).slice(0, 2).forEach((r, idx) => {
         items.push({
           id: 2001 + idx,
@@ -1219,14 +1248,18 @@ export async function loadTripChecklist(tripId) {
           referenceNumber: '',
           notes: 'Cuisine & reservation',
           bookingOptions: {
+            cityName: destCity,
             phone: r.phone || '+91 44 2498 7654',
             ticketInfo: `₹${r.approxCostForTwo || 600} for two`,
-            links: [
-              { provider: 'gmaps', label: 'View on Maps', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name)}` }
+            providerLinks: [
+              { provider: 'google_maps', label: 'Directions', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + destCity)}` },
+              { provider: 'zomato', label: 'View on Zomato', url: `https://www.zomato.com/${encodeURIComponent(destCity.toLowerCase())}/restaurants?q=${encodeURIComponent(r.name)}` }
             ]
           }
         });
       });
+
+      // 4. Attractions
       (plan.recommendedAttractions || []).slice(0, 2).forEach((a, idx) => {
         items.push({
           id: 3001 + idx,
@@ -1236,10 +1269,12 @@ export async function loadTripChecklist(tripId) {
           referenceNumber: '',
           notes: 'Tickets at entry or partner site',
           bookingOptions: {
+            cityName: destCity,
             ticketInfo: a.entryFee > 0 ? `₹${a.entryFee} entry` : 'Free Entry',
             openingHours: a.openingHours || '09:00 - 18:00',
-            links: [
-              { provider: 'gmaps', label: 'Directions', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name)}` }
+            websiteUrl: a.bookingUrl || null,
+            providerLinks: [
+              { provider: 'google_maps', label: 'Directions', url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name + ' ' + destCity)}` }
             ]
           }
         });
@@ -1252,36 +1287,178 @@ export async function loadTripChecklist(tripId) {
   }
 }
 
-export function renderChecklist(items) {
-  const container = document.getElementById('checklistItemsList');
-  if (!container) return;
-
+export function updateChecklistCounts() {
+  const items = state.currentChecklist || [];
   const total = items.length;
   const booked = items.filter(it => it.status === 'Booked').length;
   const pending = items.filter(it => it.status === 'Call pending').length;
   const unbooked = items.filter(it => it.status === 'Not booked').length;
 
-  document.getElementById('chkTotalCount').textContent = total;
-  document.getElementById('chkBookedCount').textContent = booked;
-  document.getElementById('chkPendingCount').textContent = pending;
-  document.getElementById('chkUnbookedCount').textContent = unbooked;
-
+  const totalEl = document.getElementById('chkTotalCount');
+  const bookedEl = document.getElementById('chkBookedCount');
+  const pendingEl = document.getElementById('chkPendingCount');
+  const unbookedEl = document.getElementById('chkUnbookedCount');
   const bar = document.getElementById('chkProgressBar');
-  if (bar) bar.style.width = total > 0 ? `${(booked / total) * 100}%` : '0%';
-
   const tabBadge = document.getElementById('checklistTabBadge');
+
+  if (totalEl) totalEl.textContent = total;
+  if (bookedEl) bookedEl.textContent = booked;
+  if (pendingEl) pendingEl.textContent = pending;
+  if (unbookedEl) unbookedEl.textContent = unbooked;
+  if (bar) bar.style.width = total > 0 ? `${(booked / total) * 100}%` : '0%';
   if (tabBadge) tabBadge.textContent = `${booked}/${total}`;
+}
+
+export function setChecklistStatus(id, newStatus) {
+  const input = document.getElementById(`chkStatus-${id}`);
+  if (input) input.value = newStatus;
+
+  // Update segmented control buttons in the DOM
+  const seg = document.getElementById(`chkSeg-${id}`);
+  if (seg) {
+    seg.querySelectorAll('.segmented-btn').forEach(btn => {
+      btn.classList.remove('active', 'not-booked', 'call-pending', 'booked');
+    });
+    const statusSlug = newStatus.toLowerCase().replace(/\s+/g, '-');
+    const targetBtn = seg.querySelector(`[data-status="${newStatus}"]`);
+    if (targetBtn) {
+      targetBtn.classList.add('active', statusSlug);
+    }
+  }
+
+  // Update card border / accent class
+  const card = document.getElementById(`chkCard-${id}`);
+  if (card) {
+    card.classList.remove('booked', 'pending', 'unbooked');
+    card.classList.add(newStatus === 'Booked' ? 'booked' : newStatus === 'Call pending' ? 'pending' : 'unbooked');
+  }
+
+  // Update in state item
+  const item = (state.currentChecklist || []).find(it => it.id === id);
+  if (item) {
+    item.status = newStatus;
+  }
+
+  updateChecklistCounts();
+}
+
+function renderStopActions(item) {
+  const type = (item.stopType || 'hotel').toLowerCase();
+  const bo = item.bookingOptions || {};
+  const links = bo.providerLinks || bo.links || [];
+  const phone = bo.phone || '';
+  const cityName = bo.cityName || state.currentPlan?.destinationCity || 'Tamil Nadu';
+  const stopName = item.stopName || '';
+  
+  const mapsUrl = bo.mapsUrl || links.find(l => l.provider === 'google_maps' || l.provider === 'gmaps')?.url 
+    || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stopName + ' ' + cityName)}`;
+
+  if (type === 'hotel') {
+    const mmtLink = links.find(l => l.provider === 'makemytrip' || l.provider === 'mmt');
+    const bdcLink = links.find(l => l.provider === 'booking.com' || l.provider === 'booking');
+    const mmtUrl = mmtLink ? mmtLink.url : `https://www.makemytrip.com/hotels/hotel-listing/?city=${encodeURIComponent(cityName)}&hotelName=${encodeURIComponent(stopName)}`;
+    const bdcUrl = bdcLink ? bdcLink.url : `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(stopName + ' ' + cityName)}`;
+
+    return `
+      <a href="${mmtUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        <i data-lucide="building"></i> Book on MakeMyTrip
+      </a>
+      <a href="${bdcUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        <i data-lucide="bed"></i> Book on Booking.com
+      </a>
+      ${phone ? `<a href="tel:${phone}" class="btn btn-secondary btn-sm"><i data-lucide="phone"></i> Call (${phone})</a>` : ''}
+      ${phone ? `<button type="button" class="btn btn-secondary btn-sm" onclick="window.copyToClipboard('${phone}')"><i data-lucide="copy"></i> Copy number</button>` : ''}
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+        <i data-lucide="navigation"></i> Directions
+      </a>
+    `;
+  }
+
+  if (type === 'restaurant' || type === 'food') {
+    const zomatoLink = links.find(l => l.provider === 'zomato');
+    const swiggyLink = links.find(l => l.provider === 'swiggy');
+
+    return `
+      ${phone ? `<a href="tel:${phone}" class="btn btn-secondary btn-sm"><i data-lucide="phone"></i> Call to reserve (${phone})</a>` : ''}
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+        <i data-lucide="navigation"></i> Directions
+      </a>
+      ${zomatoLink && zomatoLink.url ? `
+        <a href="${zomatoLink.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+          <i data-lucide="external-link"></i> View on Zomato
+        </a>
+      ` : ''}
+      ${swiggyLink && swiggyLink.url ? `
+        <a href="${swiggyLink.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+          <i data-lucide="external-link"></i> View on Swiggy
+        </a>
+      ` : ''}
+    `;
+  }
+
+  if (type === 'attraction' || type === 'sightseeing') {
+    const officialLink = links.find(l => l.provider === 'official' || l.provider === 'ticket');
+    const hasBookingUrl = bo.websiteUrl || (officialLink && officialLink.url && !officialLink.url.includes('google.com/search'));
+
+    return `
+      ${hasBookingUrl ? `
+        <a href="${hasBookingUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+          <i data-lucide="ticket"></i> Book Tickets
+        </a>
+      ` : `
+        <span class="entry-chip-disabled">
+          <i data-lucide="ticket"></i> Tickets at entry (${bo.ticketInfo || 'Free entry'})
+        </span>
+      `}
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+        <i data-lucide="navigation"></i> Directions
+      </a>
+    `;
+  }
+
+  if (type === 'transport') {
+    const redbusLink = links.find(l => l.provider === 'redbus');
+    const irctcLink = links.find(l => l.provider === 'irctc');
+    const mmtLink = links.find(l => l.provider === 'makemytrip' || l.provider === 'mmt');
+
+    const redbusUrl = redbusLink ? redbusLink.url : `https://www.redbus.in`;
+    const irctcUrl = irctcLink ? irctcLink.url : `https://www.irctc.co.in/nget/train-search`;
+    const mmtUrl = mmtLink ? mmtLink.url : `https://www.makemytrip.com`;
+
+    return `
+      <a href="${redbusUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        <i data-lucide="bus"></i> Book on RedBus
+      </a>
+      <a href="${irctcUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        <i data-lucide="train"></i> Book on IRCTC
+      </a>
+      <a href="${mmtUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        <i data-lucide="plane"></i> MakeMyTrip
+      </a>
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+        <i data-lucide="navigation"></i> View Route
+      </a>
+    `;
+  }
+
+  return links.map(l => `
+    <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+      <i data-lucide="external-link"></i> ${l.label}
+    </a>
+  `).join('');
+}
+
+export function renderChecklist(items) {
+  const container = document.getElementById('checklistItemsList');
+  if (!container) return;
+
+  state.currentChecklist = items;
+  updateChecklistCounts();
 
   container.innerHTML = items.map(item => {
     const statusClass = item.status === 'Booked' ? 'booked' : item.status === 'Call pending' ? 'pending' : 'unbooked';
     const bo = item.bookingOptions || {};
-    const links = bo.links || [];
-
-    const linkBtns = links.map(l => `
-      <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="partner-btn ${l.provider}">
-        ${l.label}
-      </a>
-    `).join('');
+    const actionsHtml = renderStopActions(item);
 
     return `
       <div class="checklist-card ${statusClass}" id="chkCard-${item.id}">
@@ -1293,31 +1470,36 @@ export function renderChecklist(items) {
             </span>
           </div>
 
-          <select class="chk-status-select" id="chkStatus-${item.id}">
-            <option value="Not booked" ${item.status === 'Not booked' ? 'selected' : ''}>🔴 Not booked</option>
-            <option value="Call pending" ${item.status === 'Call pending' ? 'selected' : ''}>🟡 Call pending</option>
-            <option value="Booked" ${item.status === 'Booked' ? 'selected' : ''}>🟢 Booked</option>
-          </select>
+          <div class="segmented-control" id="chkSeg-${item.id}">
+            <button type="button" class="segmented-btn ${item.status === 'Not booked' ? 'active not-booked' : ''}" data-status="Not booked" onclick="window.setChecklistStatus(${item.id}, 'Not booked')">
+              <span class="status-dot"></span> Not booked
+            </button>
+            <button type="button" class="segmented-btn ${item.status === 'Call pending' ? 'active call-pending' : ''}" data-status="Call pending" onclick="window.setChecklistStatus(${item.id}, 'Call pending')">
+              <span class="status-dot"></span> Call pending
+            </button>
+            <button type="button" class="segmented-btn ${item.status === 'Booked' ? 'active booked' : ''}" data-status="Booked" onclick="window.setChecklistStatus(${item.id}, 'Booked')">
+              <span class="status-dot"></span> Booked
+            </button>
+          </div>
+          <input type="hidden" id="chkStatus-${item.id}" value="${item.status || 'Not booked'}" />
         </div>
 
         <div class="chk-inputs-row">
           <div class="chk-input-wrap">
             <label>Confirmation / Ref #</label>
-            <input type="text" id="chkRef-${item.id}" placeholder="e.g. MMT-9821 / Confirmed" value="${item.referenceNumber || ''}">
+            <input type="text" class="chk-modern-input" id="chkRef-${item.id}" placeholder="e.g. MMT-9821 / Confirmed" value="${item.referenceNumber || ''}">
           </div>
           <div class="chk-input-wrap">
             <label>Notes & Instructions</label>
-            <input type="text" id="chkNotes-${item.id}" placeholder="e.g. Table reserved under Rahul, Deluxe room" value="${item.notes || ''}">
+            <input type="text" class="chk-modern-input" id="chkNotes-${item.id}" placeholder="e.g. Table reserved under Rahul, Deluxe room" value="${item.notes || ''}">
           </div>
-          <button type="button" class="chk-save-btn" onclick="window.saveChecklistItem(${item.id})">
-            <i data-lucide="check" style="width:16px;height:16px;"></i> Save
+          <button type="button" class="btn btn-primary btn-sm chk-save-btn" id="chkSaveBtn-${item.id}" onclick="window.saveChecklistItem(${item.id})">
+            <i data-lucide="check"></i> <span class="btn-text">Save</span>
           </button>
         </div>
 
         <div class="chk-actions-toolbar">
-          ${bo.phone ? `<a href="tel:${bo.phone}" class="partner-btn call"><i data-lucide="phone"></i> Call (${bo.phone})</a>` : ''}
-          ${bo.phone ? `<button type="button" class="partner-btn" onclick="window.copyToClipboard('${bo.phone}')"><i data-lucide="copy"></i> Copy</button>` : ''}
-          ${linkBtns}
+          ${actionsHtml}
         </div>
       </div>
     `;
@@ -1327,47 +1509,73 @@ export function renderChecklist(items) {
 }
 
 export async function saveChecklistItem(id) {
-  const select = document.getElementById(`chkStatus-${id}`);
+  const statusInput = document.getElementById(`chkStatus-${id}`);
   const ref = document.getElementById(`chkRef-${id}`);
   const notes = document.getElementById(`chkNotes-${id}`);
+  const saveBtn = document.getElementById(`chkSaveBtn-${id}`);
 
-  if (!select) return;
+  if (!statusInput) return;
+  const newStatus = statusInput.value;
+
+  if (saveBtn) {
+    saveBtn.classList.add('loading');
+    saveBtn.innerHTML = '<span class="btn-spinner"></span> <span class="btn-text">Saving...</span>';
+  }
 
   const payload = {
-    status: select.value,
+    status: newStatus,
     referenceNumber: ref ? ref.value : '',
     notes: notes ? notes.value : ''
   };
+
+  const item = (state.currentChecklist || []).find(it => it.id === id);
+  if (item) {
+    item.status = newStatus;
+    item.referenceNumber = payload.referenceNumber;
+    item.notes = payload.notes;
+  }
 
   try {
     if (state.currentTripId && state.currentTripId !== 9999) {
       await updateTripBookingStatusApi(state.currentTripId, id, payload);
     }
-    const card = document.getElementById(`chkCard-${id}`);
-    if (card) {
-      card.classList.remove('booked', 'pending', 'unbooked');
-      card.classList.add(select.value === 'Booked' ? 'booked' : select.value === 'Call pending' ? 'pending' : 'unbooked');
-    }
-    const item = (state.currentChecklist || []).find(it => it.id === id);
-    if (item) {
-      item.status = select.value;
-      item.referenceNumber = payload.referenceNumber;
-      item.notes = payload.notes;
-    }
-    showToast(`✓ Booking status updated to '${select.value}'!`, 'success');
-    if (state.currentTripId && state.currentTripId !== 9999) {
-      loadTripChecklist(state.currentTripId);
-    } else {
-      renderChecklist(state.currentChecklist || []);
-    }
   } catch (e) {
-    const card = document.getElementById(`chkCard-${id}`);
-    if (card) {
-      card.classList.remove('booked', 'pending', 'unbooked');
-      card.classList.add(select.value === 'Booked' ? 'booked' : select.value === 'Call pending' ? 'pending' : 'unbooked');
-    }
-    showToast(`✓ Status updated locally to '${select.value}' (offline mode)`, 'success');
+    console.warn("API update failed, updated in offline mode:", e);
   }
+
+  setTimeout(() => {
+    if (saveBtn) {
+      saveBtn.classList.remove('loading');
+      saveBtn.classList.add('btn-success');
+      saveBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> <span class="btn-text">Saved!</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    showToast(`✓ Booking for '${item ? item.stopName : 'stop'}' saved!`, 'success');
+    updateChecklistCounts();
+
+    setTimeout(() => {
+      if (saveBtn) {
+        saveBtn.classList.remove('btn-success');
+        saveBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> <span class="btn-text">Save</span>';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }, 2000);
+  }, 400);
+}
+
+export function handleCopySummaryClick(btn) {
+  copyTripTextSummary();
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.classList.add('btn-success');
+  btn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> <span class="btn-text">Copied!</span>';
+  if (window.lucide) window.lucide.createIcons();
+
+  setTimeout(() => {
+    btn.classList.remove('btn-success');
+    btn.innerHTML = originalHtml;
+    if (window.lucide) window.lucide.createIcons();
+  }, 2000);
 }
 
 /* ==========================================================================
@@ -1386,9 +1594,13 @@ export function showToast(message, type = 'normal') {
 }
 
 export function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast(`✓ Copied: "${text}" to clipboard!`, 'success');
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast(`✓ Copied: "${text}" to clipboard!`, 'success'))
+      .catch(() => fallbackCopyText(text, `✓ Copied: "${text}" to clipboard!`));
+  } else {
+    fallbackCopyText(text, `✓ Copied: "${text}" to clipboard!`);
+  }
 }
 
 export function copyTripTextSummary() {
@@ -1404,9 +1616,30 @@ export function copyTripTextSummary() {
     `Hotel: ₹${Math.round(cb.accommodation || 0)} | Food: ₹${Math.round(cb.food || 0)} | Transport: ₹${Math.round((cb.fuel||0)+(cb.tolls||0))} | Sightseeing: ₹${Math.round(cb.sightseeing || 0)}\n` +
     `Generated via Routewise Smart Journey Planner.`;
 
-  navigator.clipboard.writeText(text).then(() => {
-    showToast("✓ Trip summary copied to clipboard!", "success");
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("✓ Trip summary copied to clipboard!", "success"))
+      .catch(() => fallbackCopyText(text, "✓ Trip summary copied to clipboard!"));
+  } else {
+    fallbackCopyText(text, "✓ Trip summary copied to clipboard!");
+  }
+}
+
+function fallbackCopyText(text, toastMsg) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(toastMsg, 'success');
+  } catch (err) {
+    showToast(toastMsg, 'success');
+  }
 }
 
 function updateWhatsAppShareLink(p) {
