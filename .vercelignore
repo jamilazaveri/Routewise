@@ -1,6 +1,7 @@
 backend-java
 service-python
 database
+scripts
 *.sql
 *.jar
 *.md

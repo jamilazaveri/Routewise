@@ -1,16 +1,965 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/frontend/">
-  <script>
-    if (window.location.pathname === '/' || window.location.pathname === '') {
-      window.location.replace('/frontend/');
-    }
-  </script>
-  <title>Routewise</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Routewise - Smart Budget-Based Journey Planner</title>
+  
+  <!-- Google Fonts: Outfit (Display) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons (Unified Modern Icon Set via CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet Map CSS & JS (Free, OpenStreetMap, no API key needed) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- SortableJS CDN for Drag-and-Drop Timeline Reordering -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+  <!-- PWA & Mobile Web App Manifest & Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7C3AED">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Routewise">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+  <!-- Modular CSS with Cache-Busting -->
+  <link rel="stylesheet" href="css/variables.css?v=3.2">
+  <link rel="stylesheet" href="css/base.css?v=3.2">
+  <link rel="stylesheet" href="css/wizard.css?v=3.2">
+  <link rel="stylesheet" href="css/loader.css?v=3.2">
+  <link rel="stylesheet" href="css/results.css?v=3.2">
+  <link rel="stylesheet" href="css/responsive.css?v=3.2">
+  <link rel="stylesheet" href="css/immersive.css?v=1.0">
+  <link rel="stylesheet" href="css/buttons.css?v=1.0">
 </head>
 <body>
-  <p>Loading Routewise... If you are not automatically redirected, <a href="/frontend/">click here to open Routewise</a>.</p>
+
+  <!-- Background Animated Dreamy Pastel Orbs -->
+  <div class="bg-canvas-container">
+    <div class="gradient-orb orb-blush"></div>
+    <div class="gradient-orb orb-lavender"></div>
+    <div class="gradient-orb orb-sky"></div>
+    <div class="gradient-orb orb-mint"></div>
+  </div>
+
+  <!-- Decorative Animated Route Line SVG -->
+  <svg class="bg-route-svg" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="animated-route-path" d="M-50,250 C300,100 450,450 750,280 C1050,110 1200,600 1500,400" stroke="#7C3AED" stroke-width="2.5" />
+    <path class="animated-route-path" d="M-80,650 C250,500 500,750 900,550 C1250,380 1350,800 1550,680" stroke="#F43F5E" stroke-width="2" style="animation-duration: 32s;" />
+  </svg>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <div class="brand-icon-wrap">
+          <i data-lucide="compass" style="width:26px;height:26px;"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Route<span>wise</span></h1>
+          <p class="tagline">Smart Budget-Based Journey Planner</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Ambient Procedural Ocean/Breeze Sound Toggle -->
+        <button type="button" class="cinematic-toolbar-btn" id="ambientSoundBtn" title="Toggle Natural Coastal Breeze Audio">
+          <span class="sound-waves-indicator">
+            <span class="sound-wave-bar"></span>
+            <span class="sound-wave-bar"></span>
+            <span class="sound-wave-bar"></span>
+          </span>
+          <span class="btn-label">Ambient Breeze</span>
+        </button>
+
+        <!-- Immersive Parallax & Motion Effects Toggle -->
+        <button type="button" class="cinematic-toolbar-btn active" id="effectsToggleBtn" title="Toggle Parallax, Particles & 3D Tilt">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+          <span class="btn-label">Effects: ON</span>
+        </button>
+
+        <button type="button" class="header-btn" onclick="window.switchTab('savedTripsTab')">
+          <i data-lucide="bookmark"></i>
+          <span>Saved Trips</span>
+        </button>
+        <button type="button" class="header-btn primary" onclick="window.loadDemoTrip()">
+          <i data-lucide="map"></i>
+          <span>Live Route Map</span>
+        </button>
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+          <i data-lucide="moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main">
+
+    <!-- SCENIC PARALLAX HERO CONTAINER -->
+    <section class="scenic-hero-container">
+      <!-- Atmospheric Sun Glow -->
+      <div class="scenic-sun-glow"></div>
+
+      <!-- Drifting Clouds SVG Layer -->
+      <div class="scenic-clouds-layer">
+        <svg class="scenic-cloud scenic-cloud-1" viewBox="0 0 100 40">
+          <path d="M 20 30 a 12 12 0 0 1 20 -8 a 16 16 0 0 1 28 2 a 12 12 0 0 1 12 10 a 6 6 0 0 1 -4 6 l -56 0 z"/>
+        </svg>
+        <svg class="scenic-cloud scenic-cloud-2" viewBox="0 0 120 45">
+          <path d="M 25 35 a 14 14 0 0 1 24 -9 a 18 18 0 0 1 32 3 a 14 14 0 0 1 14 12 a 7 7 0 0 1 -5 7 l -65 0 z"/>
+        </svg>
+      </div>
+
+      <!-- Parallax Layer 1: Distant Western Ghats & Coastal Hills Silhouette -->
+      <div class="parallax-layer parallax-layer-hills">
+        <svg viewBox="0 0 1440 320" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.22;">
+          <path fill="currentColor" d="M0,192L48,181.3C96,171,192,149,288,160C384,171,480,213,576,202.7C672,192,768,128,864,122.7C960,117,1056,171,1152,181.3C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        </svg>
+      </div>
+
+      <!-- Parallax Layer 2: Mid-ground Swaying Palms & Dravidian Gopuram Silhouettes -->
+      <div class="parallax-layer parallax-layer-palms">
+        <svg viewBox="0 0 1440 260" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.32;">
+          <!-- Temple Tower Silhouette Left -->
+          <path fill="currentColor" d="M120,260 L135,160 L145,160 L142,120 L152,120 L150,80 L156,60 L160,80 L158,120 L168,120 L165,160 L175,160 L190,260 Z"/>
+          <!-- Coconut Palms Left -->
+          <path fill="currentColor" d="M210,260 Q218,170 240,110 Q215,90 190,105 Q225,120 236,115 Q245,80 230,65 Q250,95 244,115 Q275,100 280,125 Q255,125 246,120 Q240,170 215,260 Z"/>
+          <path fill="currentColor" d="M250,260 Q265,180 290,130 Q270,115 250,130 Q280,140 288,135 Q295,105 285,90 Q305,115 296,135 Q325,125 330,145 Q305,145 296,140 Q285,180 255,260 Z"/>
+          <!-- Rolling Dune / Midground wave -->
+          <path fill="currentColor" d="M0,210 C320,180 480,240 760,200 C1040,160 1280,230 1440,210 L1440,260 L0,260 Z"/>
+          <!-- Coconut Palms Right -->
+          <path fill="currentColor" d="M1240,260 Q1230,175 1205,115 Q1230,95 1255,110 Q1220,125 1209,120 Q1200,85 1215,70 Q1195,100 1201,120 Q1170,105 1165,130 Q1190,130 1199,125 Q1205,175 1235,260 Z"/>
+          <!-- Shore Temple Profile Right -->
+          <path fill="currentColor" d="M1310,260 L1320,180 L1335,180 L1330,140 L1342,140 L1340,110 L1348,90 L1352,110 L1350,140 L1362,140 L1357,180 L1372,180 L1382,260 Z"/>
+        </svg>
+      </div>
+
+      <!-- Parallax Layer 3: Foreground Shoreline & Coastal Vegetation -->
+      <div class="parallax-layer parallax-layer-foreground">
+        <svg viewBox="0 0 1440 140" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.48;">
+          <path fill="currentColor" d="M0,80 C240,50 480,110 800,70 C1120,30 1320,90 1440,75 L1440,140 L0,140 Z"/>
+        </svg>
+      </div>
+
+      <!-- Particle Breeze Canvas (Lightweight, 60fps) -->
+      <canvas class="scenic-breeze-canvas" id="scenicBreezeCanvas"></canvas>
+
+      <!-- Scenic Hero Content -->
+      <div class="scenic-hero-content">
+        <div class="hero-cinematic-pill">
+          <i data-lucide="compass" style="width:15px;height:15px;"></i>
+          <span>South India Intelligent Road Explorer</span>
+        </div>
+        <h2 class="hero-cinematic-title">Step into your next <span class="gradient-text">voyage.</span></h2>
+        <p class="hero-cinematic-subtitle">Experience handcrafted itineraries with greedy budget balancing, boutique heritage stays, coastal dining, and live scenic routing.</p>
+
+        <!-- Winding Travel Scroll Indicator -->
+        <div class="hero-scroll-track-wrap">
+          <svg class="hero-scroll-track-svg" viewBox="0 0 380 40" fill="none">
+            <path d="M 20 25 C 100 10, 180 35, 260 15 C 300 5, 340 30, 370 20" stroke="#7C3AED" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round" opacity="0.6"/>
+            <!-- Pulsing Traveler Pin -->
+            <circle cx="260" cy="15" r="5" fill="#F43F5E" class="travel-vehicle-glow">
+              <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div class="scroll-prompt-text">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+            <span>Scroll to explore or choose a jewel below</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESTINATION 3D POP-UP SHOWCASE -->
+    <section class="destinations-showcase-section">
+      <div class="showcase-header">
+        <div class="showcase-badge">
+          <i data-lucide="sparkles" style="width:14px;height:14px;"></i> Featured Gateways
+        </div>
+        <h3 class="showcase-title">Explore South India's Crown Jewels</h3>
+        <p class="showcase-subtitle">Hover to explore 3D viewpoints; tap any destination to personalize your planner with its authentic mood and curated landmarks.</p>
+      </div>
+
+      <div class="destination-cards-carousel">
+        <!-- Pondicherry -->
+        <div class="destination-popup-card" data-city="Pondicherry" title="Click to plan for Pondicherry">
+          <img src="https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=600&q=80" alt="Pondicherry French Quarter" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">French Riviera of the East</span>
+            <h4 class="dest-card-name">Pondicherry</h4>
+            <p class="dest-card-desc">Promenade beach walks, yellow colonial villas, Auroville meditation domes, and seaside bistros.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Madurai -->
+        <div class="destination-popup-card" data-city="Madurai" title="Click to plan for Madurai">
+          <img src="https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=600&q=80" alt="Madurai Meenakshi Temple" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Athens of the East</span>
+            <h4 class="dest-card-name">Madurai</h4>
+            <p class="dest-card-desc">2,500-year-old living heritage, soaring Dravidian gopurams, fragrant jasmine markets, and legendary Kari Dosa.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coimbatore -->
+        <div class="destination-popup-card" data-city="Coimbatore" title="Click to plan for Coimbatore">
+          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Coimbatore Western Ghats" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Western Ghats Haven</span>
+            <h4 class="dest-card-name">Coimbatore</h4>
+            <p class="dest-card-desc">Majestic 112-ft Adiyogi Shiva bust, misty mountain foothill breezes, Siruvani sweet water, and temple foothills.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chennai -->
+        <div class="destination-popup-card" data-city="Chennai" title="Click to plan for Chennai">
+          <img src="https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=600&q=80" alt="Chennai Kapaleeshwarar" class="dest-card-bg-img" loading="lazy" />
+          <div class="dest-card-gradient-scrim"></div>
+          <div class="dest-card-content">
+            <span class="dest-card-tag">Gateway to South India</span>
+            <h4 class="dest-card-name">Chennai</h4>
+            <p class="dest-card-desc">Endless Marina Beach sunrises, 7th-century Mylapore temples, classic filter coffee, and San Thome heritage.</p>
+            <div class="dest-card-btn">
+              <span>Plan This Journey</span>
+              <i data-lucide="arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Planner Wizard Card -->
+    <section class="wizard-card" id="wizardCard">
+      
+      <!-- Stepper Progress Bar & Steps -->
+      <div class="wizard-stepper">
+        <div class="stepper-progress-track">
+          <div class="stepper-progress-bar" id="stepperProgressBar"></div>
+        </div>
+        <ol class="stepper-steps">
+          <li class="step-item active" data-step="1" onclick="window.goToStep(1)">
+            <div class="step-circle"><i data-lucide="map-pin" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">1. Where</span>
+          </li>
+          <li class="step-item" data-step="2" onclick="window.goToStep(2)">
+            <div class="step-circle"><i data-lucide="calendar" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">2. When & Who</span>
+          </li>
+          <li class="step-item" data-step="3" onclick="window.goToStep(3)">
+            <div class="step-circle"><i data-lucide="compass" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">3. How</span>
+          </li>
+          <li class="step-item" data-step="4" onclick="window.goToStep(4)">
+            <div class="step-circle"><i data-lucide="wallet" style="width:18px;height:18px;"></i></div>
+            <span class="step-label">4. Budget</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Wizard Step Viewports -->
+      <div class="wizard-panels-viewport">
+
+        <!-- STEP 1: WHERE -->
+        <div class="wizard-panel active" data-step="1">
+          <div class="panel-header">
+            <h3>Choose your destination</h3>
+            <p>Pick your starting point and the destination you want to explore.</p>
+          </div>
+
+          <div class="location-inputs-grid">
+            <!-- From City -->
+            <div class="input-field-group">
+              <label for="startCityInput"><i data-lucide="navigation" style="width:14px;height:14px;"></i> Starting City</label>
+              <div class="modern-input-wrap">
+                <i data-lucide="map-pin" class="input-icon"></i>
+                <input type="text" id="startCityInput" class="modern-input" placeholder="e.g. Chennai" autocomplete="off" />
+              </div>
+              <div class="autocomplete-dropdown" id="startCityDropdown"></div>
+            </div>
+
+            <!-- Swap Button -->
+            <button type="button" class="city-swap-btn" id="citySwapBtn" title="Swap Origin and Destination">
+              <i data-lucide="arrow-left-right" style="width:18px;height:18px;"></i>
+            </button>
+
+            <!-- To City -->
+            <div class="input-field-group">
+              <label for="destinationCityInput"><i data-lucide="map-pin" style="width:14px;height:14px;"></i> Destination City</label>
+              <div class="modern-input-wrap">
+                <i data-lucide="landmark" class="input-icon"></i>
+                <input type="text" id="destinationCityInput" class="modern-input" placeholder="e.g. Pondicherry" autocomplete="off" />
+              </div>
+              <div class="autocomplete-dropdown" id="destinationCityDropdown"></div>
+            </div>
+          </div>
+
+          <!-- Quick City Chips -->
+          <div class="quick-cities-row">
+            <span class="quick-cities-label">Popular Hubs:</span>
+            <button type="button" class="city-chip" data-city="Chennai">Chennai</button>
+            <button type="button" class="city-chip" data-city="Bengaluru">Bengaluru</button>
+            <button type="button" class="city-chip" data-city="Pondicherry">Pondicherry</button>
+            <button type="button" class="city-chip" data-city="Madurai">Madurai</button>
+            <button type="button" class="city-chip" data-city="Coimbatore">Coimbatore</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: WHEN & WHO -->
+        <div class="wizard-panel" data-step="2">
+          <div class="panel-header">
+            <h3>Dates & Travellers</h3>
+            <p>Set your journey departure, length of stay, and group count.</p>
+          </div>
+
+          <div class="when-who-grid">
+            <!-- Start Date -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="calendar" style="color:#7C3AED;width:18px;height:18px;"></i>
+                <span>Departure Date</span>
+              </div>
+              <div class="modern-input-wrap">
+                <input type="date" id="startDateInput" class="modern-input" style="padding-left:1rem;" />
+              </div>
+              <div class="stepper-subtext">Weekend trips recommended</div>
+            </div>
+
+            <!-- Duration (Days) -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="clock" style="color:#F43F5E;width:18px;height:18px;"></i>
+                <span>Duration (Days)</span>
+              </div>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn" onclick="window.stepDays(-1)">-</button>
+                <div class="stepper-value-display" id="numDaysVal">2</div>
+                <button type="button" class="stepper-btn" onclick="window.stepDays(1)">+</button>
+              </div>
+              <div class="stepper-subtext" id="daysSubtext">Weekend Getaway</div>
+            </div>
+
+            <!-- Travellers -->
+            <div class="stepper-card">
+              <div class="stepper-card-title">
+                <i data-lucide="users" style="color:#10B981;width:18px;height:18px;"></i>
+                <span>Travellers</span>
+              </div>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn" onclick="window.stepTravellers(-1)">-</button>
+                <div class="stepper-value-display" id="numTravellersVal">2</div>
+                <button type="button" class="stepper-btn" onclick="window.stepTravellers(1)">+</button>
+              </div>
+              <div class="stepper-subtext" id="travellersSubtext">Couple</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: HOW (TRANSPORT) -->
+        <div class="wizard-panel" data-step="3">
+          <div class="panel-header">
+            <h3>Choose your mode of travel</h3>
+            <p>Select how you want to move between cities and attractions.</p>
+          </div>
+
+          <div class="transport-cards-grid">
+            <!-- Car -->
+            <div class="transport-card selected" data-mode="car">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="car" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Car</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Personal or rental car</p>
+              <span class="transport-badge">15 km/L • Toll Roads</span>
+            </div>
+
+            <!-- Bike -->
+            <div class="transport-card" data-mode="bike">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="bike" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Bike</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Motorbike expedition</p>
+              <span class="transport-badge">40 km/L • Zero Tolls</span>
+            </div>
+
+            <!-- Bus -->
+            <div class="transport-card" data-mode="bus">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="bus" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Bus</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">AC Sleeper / Express</p>
+              <span class="transport-badge">₹1.80 / km / person</span>
+            </div>
+
+            <!-- Train -->
+            <div class="transport-card" data-mode="train">
+              <div class="transport-check-pill">✓</div>
+              <div class="transport-icon-box">
+                <i data-lucide="train" style="width:28px;height:28px;"></i>
+              </div>
+              <h4 class="transport-title">Train</h4>
+              <p style="font-size:0.8rem;color:var(--text-secondary);">Superfast / Express</p>
+              <span class="transport-badge">₹1.25 / km / person</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: BUDGET & DRAGGABLE DONUT CHART -->
+        <div class="wizard-panel" data-step="4">
+          <div class="panel-header">
+            <h3>Budget & Allocation</h3>
+            <p>Define your total trip budget and interact with the donut chart to divide expenses.</p>
+          </div>
+
+          <div class="budget-step-container">
+            <!-- Total Budget Range & Presets -->
+            <div class="budget-top-bar">
+              <div class="budget-amount-display">
+                <h4>Total Trip Budget</h4>
+                <div class="budget-big-number">
+                  <span class="currency">₹</span>
+                  <span id="totalBudgetBigDisplay">18,000</span>
+                </div>
+                <input type="range" id="totalBudgetRange" class="budget-range-input" min="5000" max="60000" step="500" value="18000" />
+              </div>
+
+              <div class="budget-presets-row">
+                <button type="button" class="budget-preset-chip" data-amount="8000">₹8K (Backpacker)</button>
+                <button type="button" class="budget-preset-chip active" data-amount="18000">₹18K (Balanced)</button>
+                <button type="button" class="budget-preset-chip" data-amount="30000">₹30K (Comfort)</button>
+                <button type="button" class="budget-preset-chip" data-amount="45000">₹45K (Luxury)</button>
+              </div>
+            </div>
+
+            <!-- Interactive Donut Chart & Category Sliders -->
+            <div class="donut-interactive-grid">
+              
+              <!-- SVG Donut Chart with Center Display -->
+              <div class="donut-chart-wrapper">
+                <svg id="donutSvg" class="donut-svg" viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r="75" fill="none" stroke="var(--border-subtle)" stroke-width="28" />
+                  <g id="donutSlicesGroup"></g>
+                </svg>
+
+                <div class="donut-center-badge">
+                  <div class="donut-center-title" id="donutCenterTitle">Total Budget</div>
+                  <div class="donut-center-amount" id="donutCenterAmount">₹18,000</div>
+                  <div class="donut-center-pct" id="donutCenterPct">100%</div>
+                </div>
+              </div>
+
+              <!-- Synchronized Category Shares Sliders -->
+              <div class="category-shares-controls">
+                
+                <!-- Stay -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#F43F5E;"></span> Stay (Hotels)</span>
+                    <span><strong id="pct-accommodation">35%</strong> (<span id="amt-accommodation">₹6,300</span>)</span>
+                  </div>
+                  <input type="range" id="slider-accommodation" class="cat-slider-track" min="10" max="60" value="35" style="accent-color:#F43F5E;" />
+                </div>
+
+                <!-- Food -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#10B981;"></span> Food & Dining</span>
+                    <span><strong id="pct-food">25%</strong> (<span id="amt-food">₹4,500</span>)</span>
+                  </div>
+                  <input type="range" id="slider-food" class="cat-slider-track" min="10" max="60" value="25" style="accent-color:#10B981;" />
+                </div>
+
+                <!-- Transport -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#0284C7;"></span> Fuel & Tolls</span>
+                    <span><strong id="pct-transport">20%</strong> (<span id="amt-transport">₹3,600</span>)</span>
+                  </div>
+                  <input type="range" id="slider-transport" class="cat-slider-track" min="10" max="50" value="20" style="accent-color:#0284C7;" />
+                </div>
+
+                <!-- Sightseeing -->
+                <div class="cat-slider-row">
+                  <div class="cat-slider-header">
+                    <span><span class="cat-legend-dot" style="background:#7C3AED;"></span> Sightseeing</span>
+                    <span><strong id="pct-sightseeing">20%</strong> (<span id="amt-sightseeing">₹3,600</span>)</span>
+                  </div>
+                  <input type="range" id="slider-sightseeing" class="cat-slider-track" min="5" max="50" value="20" style="accent-color:#7C3AED;" />
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Wizard Navigation Footer -->
+      <div class="wizard-footer-nav">
+        <button type="button" class="wizard-btn" id="wizardBackBtn">
+          <i data-lucide="arrow-left"></i> Back
+        </button>
+        <button type="button" class="wizard-btn primary" id="wizardNextBtn">
+          Next Step <i data-lucide="arrow-right"></i>
+        </button>
+        <button type="button" class="wizard-btn primary" id="wizardSubmitBtn" style="display:none;">
+          <i data-lucide="sparkles"></i> Generate Itinerary
+        </button>
+      </div>
+
+    </section>
+
+    <!-- SCROLL STORYTELLING JOURNEY MILESTONES -->
+    <section class="storytelling-container" id="storytellingSection">
+      <div class="storytelling-line-track">
+        <div class="storytelling-line-progress" id="storytellingLineProgress"></div>
+      </div>
+
+      <!-- Milestone 1 -->
+      <div class="story-milestone-card" data-milestone="1">
+        <div class="milestone-node-pin">1</div>
+        <span class="milestone-step-pill">01 • Compass & Waypoints</span>
+        <h4 class="milestone-title">Tell Us Where the Compass Points</h4>
+        <p class="milestone-desc">Choose your origin and destination from our curated South Indian circuit. Whether tracing the coastal East Coast Road to Pondicherry or heading toward the Western Ghats of Coimbatore, our engine maps real road corridors and live weather conditions.</p>
+      </div>
+
+      <!-- Milestone 2 -->
+      <div class="story-milestone-card" data-milestone="2">
+        <div class="milestone-node-pin">2</div>
+        <span class="milestone-step-pill">02 • Dynamic Rupee Allocation</span>
+        <h4 class="milestone-title">Zero Guesswork, 100% Budget Integrity</h4>
+        <p class="milestone-desc">Our greedy budget algorithm balances every single rupee across boutique stays, authentic regional dining, fuel & tolls, and verified entrance tickets. Drag the live what-if slider anytime to see recommendations flex in real time.</p>
+      </div>
+
+      <!-- Milestone 3 -->
+      <div class="story-milestone-card" data-milestone="3">
+        <div class="milestone-node-pin">3</div>
+        <span class="milestone-step-pill">03 • Five Distinct Perspectives</span>
+        <h4 class="milestone-title">Fastest, Shortest, Cheapest, Scenic, or Easiest</h4>
+        <p class="milestone-desc">Never settle for a one-size-fits-all road trip. Switch between five calibrated route styles to prioritize emerald backroads, minimal toll fees, or smooth national highways with animated fly-to mapping.</p>
+      </div>
+
+      <!-- Milestone 4 -->
+      <div class="story-milestone-card" data-milestone="4">
+        <div class="milestone-node-pin">4</div>
+        <span class="milestone-step-pill">04 • One-Tap Direct Reservations</span>
+        <h4 class="milestone-title">Seamless Booking & Offline Trip Checklist</h4>
+        <p class="milestone-desc">Deep-link straight to verified partner portals (MakeMyTrip, Booking.com, official ticket gates) with zero markup, call hotels with prefilled contact buttons, and manage your live trip checklist even on the road.</p>
+      </div>
+    </section>
+
+    <!-- Playful Animated Road Loader ("Generating" Screen) -->
+    <section class="generating-screen" id="generatingScreen">
+      <div class="road-stage">
+        <svg class="road-svg" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">
+          <path class="road-track" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+          <path class="road-track-inner" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+          <path class="road-dotted-line" d="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" />
+
+          <path class="cloud-float" d="M 50 40 a 10 10 0 0 1 18 -4 a 14 14 0 0 1 24 2 a 10 10 0 0 1 2 12 l -44 0 z" />
+          <path class="cloud-float" d="M 260 30 a 8 8 0 0 1 14 -3 a 12 12 0 0 1 20 2 a 8 8 0 0 1 2 10 l -36 0 z" style="animation-delay:-3s;" />
+
+          <g class="animated-car-group">
+            <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#7C3AED" />
+            <rect x="-6" y="-6" width="14" height="12" rx="2" fill="#EDE9FE" />
+            <circle cx="-8" cy="8" r="3" fill="#241434" />
+            <circle cx="8" cy="8" r="3" fill="#241434" />
+            
+            <animateMotion 
+              path="M 20 140 C 90 140, 100 40, 180 40 C 260 40, 270 140, 340 140" 
+              dur="3s" 
+              repeatCount="indefinite" 
+              rotate="auto" />
+          </g>
+        </svg>
+      </div>
+
+      <h3 class="generating-title">Crafting Your Travel Experience</h3>
+      <div class="generating-status-pill">
+        <span class="status-spinner-dot"></span>
+        <span id="generatingStatusText">Analyzing optimal routes & road conditions...</span>
+      </div>
+
+      <div class="generating-progress-bar-wrap">
+        <div class="generating-progress-fill"></div>
+      </div>
+    </section>
+
+    <!-- Results Section (Phase 3B Dashboard, Tabs, Leaflet Map, Checklist) -->
+    <section class="results-card" id="resultsSection">
+
+      <!-- Summary Header Hero: Animated Progress Ring, Count-up, and What-if Slider -->
+      <div class="results-summary-hero">
+        
+        <!-- Progress Ring -->
+        <div class="summary-ring-box">
+          <svg class="ring-svg" viewBox="0 0 160 160">
+            <circle class="ring-bg" cx="80" cy="80" r="68" />
+            <circle class="ring-progress" id="summaryRingProgress" cx="80" cy="80" r="68" />
+          </svg>
+          <div class="ring-content">
+            <div class="ring-pct" id="summaryRingPct">0%</div>
+            <div class="ring-label">of Budget</div>
+          </div>
+        </div>
+
+        <!-- Center Cost and Status -->
+        <div class="summary-details-box">
+          <div class="summary-headline">
+            <span>Trip Budget Balance</span>
+            <span class="summary-badge-status within" id="summaryBadgeStatus">
+              <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Within Budget
+            </span>
+          </div>
+
+          <div class="summary-cost-row">
+            <span class="summary-total-cost" id="summaryTotalCost">₹0</span>
+            <span class="summary-budget-target" id="summaryBudgetTarget">Budget: ₹18,000</span>
+          </div>
+
+          <div class="summary-left-pill positive" id="summaryLeftAmount">
+            <i data-lucide="trending-up" style="width:16px;height:16px;"></i> ₹0 left to spend
+          </div>
+        </div>
+
+        <!-- What-If Live Budget Slider & Weather Widget -->
+        <div class="summary-whatif-box">
+          <div class="whatif-header">
+            <span>What-If Budget Slider</span>
+            <span class="tag" id="whatifBudgetDisplay">₹18,000</span>
+          </div>
+          <input type="range" class="whatif-slider" id="whatifBudgetSlider" min="9000" max="36000" step="500" value="18000" oninput="window.handleWhatIfBudgetChange(this.value)" />
+          <p class="whatif-caption">Drag slider to live-simulate budget elasticity and recommendations</p>
+
+          <!-- Live Weather Forecast Pill (Open-Meteo) -->
+          <div class="weather-forecast-pill" id="destinationWeatherPill">
+            <i data-lucide="cloud-sun" style="width:16px;height:16px;color:#F59E0B;"></i>
+            <span id="weatherText">Checking destination weather...</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Cost Breakdown Stacked Bar -->
+      <div class="cost-breakdown-interactive">
+        <div class="cost-stacked-bar-track" id="stackedCostBar"></div>
+        <div class="cost-categories-legend" id="costCategoriesLegend"></div>
+      </div>
+
+      <!-- Share & Export Bar with Partner Booking Disclaimer -->
+      <div class="share-bar-container">
+        <div class="disclaimer-card">
+          <i data-lucide="info"></i>
+          <span><strong>Booking Disclaimer:</strong> Prices, availability and schedules are estimates. Final bookings happen directly on partner platforms.</span>
+        </div>
+
+        <div class="share-buttons-row">
+          <button type="button" class="btn btn-secondary" id="btnCopySummary" onclick="window.handleCopySummaryClick(this)">
+            <i data-lucide="copy"></i> <span class="btn-text">Copy Summary</span>
+          </button>
+          <a href="#" class="btn btn-whatsapp" id="whatsappShareLink" target="_blank" rel="noopener noreferrer">
+            <i data-lucide="share-2"></i> <span class="btn-text">WhatsApp Share</span>
+          </a>
+          <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i data-lucide="printer"></i> <span class="btn-text">Printable View</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs with Sliding Pill Indicator -->
+      <div class="sliding-tabs-nav-wrap">
+        <div class="sliding-tabs-nav" id="slidingTabsNav">
+          <div class="tab-sliding-indicator" id="tabSlidingIndicator"></div>
+          <button type="button" class="sliding-tab-btn active" data-tab="itineraryTab" onclick="window.switchTab('itineraryTab')">
+            <i data-lucide="calendar"></i> Itinerary
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="routesTab" onclick="window.switchTab('routesTab')">
+            <i data-lucide="map"></i> Routes & Map
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="stayTab" onclick="window.switchTab('stayTab')">
+            <i data-lucide="hotel"></i> Stay
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="foodTab" onclick="window.switchTab('foodTab')">
+            <i data-lucide="utensils"></i> Food
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="placesTab" onclick="window.switchTab('placesTab')">
+            <i data-lucide="landmark"></i> Places
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="checklistTab" onclick="window.switchTab('checklistTab')">
+            <i data-lucide="list-checks"></i> Bookings
+            <span class="tab-counter-badge" id="checklistTabBadge" style="margin-left:0.3rem;">0/0</span>
+          </button>
+          <button type="button" class="sliding-tab-btn" data-tab="savedTripsTab" onclick="window.switchTab('savedTripsTab')">
+            <i data-lucide="bookmark"></i> Saved Trips
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: VERTICAL TIMELINE WITH DRAG-AND-DROP & CLOSING WARNINGS -->
+      <div class="tab-pane active" id="itineraryTab">
+        <div class="timeline-section-wrap">
+          <div class="timeline-day-tabs-bar" id="timelineDayPills"></div>
+          <div id="timelineDaysContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: ROUTES & LEAFLET MAP WITH 5 STYLES & COMPARISON -->
+      <div class="tab-pane" id="routesTab">
+        <div class="routes-map-container">
+          <div class="routes-cards-panel" id="routeStyleCardsList"></div>
+          <div class="map-view-card">
+            <div id="leafletMapContainer"></div>
+          </div>
+        </div>
+
+        <div class="comparison-table-wrapper">
+          <h4 style="font-size:1.1rem;font-weight:700;margin-bottom:0.85rem;">Route Styles Comparison Table</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Style</th>
+                <th>Distance</th>
+                <th>Travel Time</th>
+                <th>Estimated Cost</th>
+                <th>Scenic Score</th>
+              </tr>
+            </thead>
+            <tbody id="routeComparisonTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: STAY (HOTELS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="stayTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Tiers</button>
+            <button type="button" class="filter-pill">Budget</button>
+            <button type="button" class="filter-pill">Mid-Range</button>
+            <button type="button" class="filter-pill">Boutique & Luxury</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Recommended (Rating & Value)</option>
+              <option>Price: Low to High</option>
+              <option>Rating: High to Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="stayCardsGrid"></div>
+      </div>
+
+      <!-- TAB 4: FOOD (RESTAURANTS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="foodTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Cuisines</button>
+            <button type="button" class="filter-pill">South Indian Thali</button>
+            <button type="button" class="filter-pill">Coastal & Seafood</button>
+            <button type="button" class="filter-pill">Bakery & Cafes</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Rating: High to Low</option>
+              <option>Price for Two</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="foodCardsGrid"></div>
+      </div>
+
+      <!-- TAB 5: PLACES (ATTRACTIONS) IMAGE-FIRST CATALOG -->
+      <div class="tab-pane" id="placesTab">
+        <div class="catalog-filter-bar">
+          <div class="filter-pills-group">
+            <button type="button" class="filter-pill active">All Attractions</button>
+            <button type="button" class="filter-pill">Beaches</button>
+            <button type="button" class="filter-pill">Temples & Heritage</button>
+            <button type="button" class="filter-pill">Museums</button>
+          </div>
+          <div class="sort-select-wrap">
+            <span style="font-size:0.8rem;color:var(--text-muted);">Sort by:</span>
+            <select class="sort-select">
+              <option>Popularity</option>
+              <option>Entry Fee</option>
+            </select>
+          </div>
+        </div>
+        <div class="cards-catalog-grid" id="placesCardsGrid"></div>
+      </div>
+
+      <!-- TAB 6: BOOKINGS CHECKLIST -->
+      <div class="tab-pane" id="checklistTab">
+        <div class="checklist-stats-bar">
+          <span class="chk-stat-chip">Total Stops: <strong id="chkTotalCount">0</strong></span>
+          <span class="chk-stat-chip booked">Booked: <strong id="chkBookedCount">0</strong></span>
+          <span class="chk-stat-chip pending">Call Pending: <strong id="chkPendingCount">0</strong></span>
+          <span class="chk-stat-chip unbooked">Not Booked: <strong id="chkUnbookedCount">0</strong></span>
+          <div class="chk-progress-wrap">
+            <div class="chk-progress-fill" id="chkProgressBar" style="width:0%;"></div>
+          </div>
+        </div>
+        <div class="checklist-cards-container" id="checklistItemsList"></div>
+      </div>
+
+      <!-- TAB 7: SAVED TRIPS VISUAL CARDS -->
+      <div class="tab-pane" id="savedTripsTab">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h3 style="font-size:1.35rem;font-weight:700;">Your Journey Itineraries</h3>
+          <button type="button" class="header-btn" onclick="window.clearAllTripHistory()">
+            <i data-lucide="trash-2" style="color:#F43F5E;"></i> Clear All History
+          </button>
+        </div>
+        <div class="saved-trips-grid" id="savedTripsGrid"></div>
+      </div>
+
+    </section>
+
+    <!-- App Disclaimer Footer -->
+    <footer class="app-disclaimer-footer">
+      <p><i data-lucide="info" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Demo data based on public information. Prices and timings are estimates; please confirm before travelling.</p>
+    </footer>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button type="button" class="bottom-nav-item active" data-action="plan">
+      <i data-lucide="compass"></i>
+      <span>Plan</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="itinerary">
+      <i data-lucide="calendar"></i>
+      <span>Itinerary</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="routes">
+      <i data-lucide="map"></i>
+      <span>Routes</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="checklist">
+      <i data-lucide="list-checks"></i>
+      <span>Bookings</span>
+    </button>
+    <button type="button" class="bottom-nav-item" data-action="theme">
+      <i data-lucide="moon"></i>
+      <span>Theme</span>
+    </button>
+  </nav>
+
+  <!-- Immersive Full-Screen Attraction Modal -->
+  <div class="immersive-modal-backdrop" id="attractionModal" onclick="if(event.target===this) window.closeAttractionModal()">
+    <div class="immersive-modal-card">
+      <button type="button" class="modal-close-btn" onclick="window.closeAttractionModal()" aria-label="Close dialog">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="immersive-modal-hero">
+        <img src="" alt="" class="immersive-modal-img ken-burns" id="modalHeroImg" />
+        <div class="immersive-modal-overlay"></div>
+        <span class="modal-open-status-pill" id="modalOpenStatusPill">Open now</span>
+        <div class="modal-photo-credit" id="modalPhotoCredit">Photo: Wikimedia Commons, CC BY-SA</div>
+      </div>
+
+      <div class="immersive-modal-body">
+        <div class="modal-title-row">
+          <div>
+            <h2 class="modal-title" id="modalTitle">Attraction Name</h2>
+            <div class="modal-category-city" id="modalCategoryCity">Category • City</div>
+          </div>
+          <div class="modal-ticket-badge" id="modalTicketBadge">Free Entry</div>
+        </div>
+
+        <p class="modal-desc" id="modalDesc">Detailed historical background and significance...</p>
+
+        <div class="modal-meta-grid">
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="clock"></i> Opening Hours</span>
+            <span class="meta-val" id="modalHours">09:00 AM - 06:00 PM</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="hourglass"></i> Typical Duration</span>
+            <span class="meta-val" id="modalDuration">90 mins</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="sun"></i> Best Time to Visit</span>
+            <span class="meta-val" id="modalBestTime">Morning or Sunset</span>
+          </div>
+          <div class="modal-meta-box">
+            <span class="meta-label"><i data-lucide="ticket"></i> Ticket Info</span>
+            <span class="meta-val" id="modalTicketInfo">Entry at Gate / Online</span>
+          </div>
+        </div>
+
+        <div class="modal-actions-toolbar">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" id="modalBookBtn">
+            <i data-lucide="external-link"></i> Book Tickets
+          </a>
+          <a href="#" class="btn btn-secondary btn-sm" id="modalCallBtn">
+            <i data-lucide="phone"></i> Call
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="modalDirectionsBtn">
+            <i data-lucide="navigation"></i> Directions
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install Banner (Triggered by beforeinstallprompt) -->
+  <div class="pwa-install-banner" id="pwaInstallBanner">
+    <img src="icons/icon-192.png" alt="Routewise App Icon" class="pwa-install-icon" />
+    <div class="pwa-install-text">
+      <h4>Install Routewise App</h4>
+      <p>Add to your home screen for offline travel access & instant planning</p>
+    </div>
+    <div class="pwa-install-actions">
+      <button type="button" class="pwa-btn-confirm" id="pwaConfirmInstallBtn">Install</button>
+      <button type="button" class="pwa-btn-dismiss" id="pwaDismissInstallBtn" title="Dismiss">✕</button>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div class="app-toast" id="appToast">Notification</div>
+
+  <!-- Main ES Module Script with Cache-Busting -->
+  <script type="module" src="js/config.js"></script>
+  <!-- Real Wikimedia Commons Photos & Descriptions Cache -->
+  <script src="js/attraction_images.data.js?v=4.2"></script>
+  <script type="module" src="js/immersive.js?v=1.0"></script>
+  <script type="module" src="js/app.js?v=4.3"></script>
 </body>
 </html>
